@@ -40,7 +40,7 @@ namespace MonoMSDF.Text
         /// </summary>
         public bool OptimizeForTinyText { get; set; }
 
-        public void Render(string text, Matrix worldViewProjection)
+        public void Render(string text, Matrix worldViewProjection, Vector2? position = null)
         {
             if (string.IsNullOrEmpty(text))
                 return;
@@ -64,7 +64,7 @@ namespace MonoMSDF.Text
             }
             
 
-            var pen = Vector2.Zero;
+            Vector2 pen = position == null ? Vector2.Zero : (Vector2)position;
             for (var i = 0; i < sequence.Length; i++)
             {
                 var current = sequence[i];
