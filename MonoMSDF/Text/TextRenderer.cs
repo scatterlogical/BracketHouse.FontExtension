@@ -30,6 +30,7 @@ namespace MonoMSDF.Text
             this.ForegroundColor = Color.White;
             this.EnableKerning = true;
             this.OptimizeForTinyText = false;
+            this.PositiveYIsDown = false;
         }
 
         public Color ForegroundColor { get; set; }
@@ -39,6 +40,10 @@ namespace MonoMSDF.Text
         /// Disables text anti-aliasing which might cause blurry text when the text is rendered tiny
         /// </summary>
         public bool OptimizeForTinyText { get; set; }
+        /// <summary>
+        /// Flip the Y axis, so that positive Y is down. It is up to you to provide a wvp matrix where that makes sense.
+        /// </summary>
+        public bool PositiveYIsDown { get; set; }
 
         public void Render(string text, Matrix worldViewProjection, Vector2? position = null)
         {
@@ -65,6 +70,7 @@ namespace MonoMSDF.Text
             
 
             Vector2 pen = position == null ? Vector2.Zero : (Vector2)position;
+            int yFlip = PositiveYIsDown ? -1 : 1;
             for (var i = 0; i < sequence.Length; i++)
             {
                 var current = sequence[i];
@@ -79,7 +85,7 @@ namespace MonoMSDF.Text
                 var bottom = pen.Y - current.Metrics.Translation.Y;
 
                 var right = left + glyphWidth;
-                var top = bottom + glyphHeight;
+                var top = bottom + glyphHeight * yFlip;
 
                 if (!char.IsWhiteSpace(current.Character))
                 {
