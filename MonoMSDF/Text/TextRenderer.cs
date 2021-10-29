@@ -82,7 +82,7 @@ namespace MonoMSDF.Text
                 var glyphWidth = textureWidth * (1.0f / current.Metrics.Scale);
 
                 var left = pen.X - current.Metrics.Translation.X;
-                var bottom = pen.Y - current.Metrics.Translation.Y;
+                var bottom = pen.Y - current.Metrics.Translation.Y * yFlip;
 
                 var right = left + glyphWidth;
                 var top = bottom + glyphHeight * yFlip;
