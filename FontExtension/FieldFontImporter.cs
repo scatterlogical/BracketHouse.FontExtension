@@ -43,8 +43,22 @@ namespace FontExtension
                 if (parts.Length != 2)
                 {
                     throw new Exception($"Unexpected number of tuple elements in tuple: {tuple}");
-                }            
-
+                }
+                // Convert hex numbers to chars
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    if (parts[i].Length > 1 && parts[i].Substring(0, 2) == "0x")
+                    {
+                        try
+                        {
+                            parts[i] = ((char)Convert.ToInt32(parts[i], 16)).ToString();
+                        }
+                        catch (Exception)
+                        {
+                            throw new Exception($"String not recognized as hex number: {parts[i]}");
+                        }
+                    }
+                }
                 if (parts[0].Length != 1 || parts[1].Length != 1)
                 {
                     throw new Exception($"A tuple can only contain two characters seperated by a comma: {tuple}");
