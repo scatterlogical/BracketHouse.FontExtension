@@ -52,7 +52,7 @@ namespace MonoMSDF.Text
             this.Effect.Parameters["WorldViewProjection"].SetValue(worldViewProjection);
             this.Effect.Parameters["PxRange"].SetValue(this.Font.PxRange);
             this.Effect.Parameters["TextureSize"].SetValue(new Vector2(textureWidth, textureHeight));
-            this.Effect.Parameters["ForegroundColor"].SetValue(Color.White.ToVector4());
+            this.Effect.Parameters["ForegroundColor"].SetValue(ForegroundColor.ToVector4());
 
             if (this.OptimizeForTinyText)
             {
