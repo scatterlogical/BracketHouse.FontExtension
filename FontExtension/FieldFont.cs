@@ -59,7 +59,10 @@ namespace FontExtension
             {
                 return glyph;
             }
-
+            if (this.Glyphs.TryGetValue('?', out FieldGlyph backupGlyph))
+            {
+                return backupGlyph;
+            }
             throw new InvalidOperationException($"Character '{c}' not found in font {this.Name}. Did you forget to include it in the character ranges?");
         }
     }
