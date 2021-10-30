@@ -45,7 +45,7 @@ namespace MonoMSDF.Text
         /// </summary>
         public bool PositiveYIsDown { get; set; }
 
-        public void Render(string text, Matrix worldViewProjection, Vector2? position = null)
+        public void Render(string text, Matrix worldViewProjection, Vector2? position = null, float scale = 1)
         {
             if (string.IsNullOrEmpty(text))
                 return;
@@ -78,11 +78,11 @@ namespace MonoMSDF.Text
                 this.Effect.Parameters["GlyphTexture"].SetValue(current.Texture);
                 this.Effect.CurrentTechnique.Passes[0].Apply();
 
-                var glyphHeight = textureHeight * (1.0f / current.Metrics.Scale);
-                var glyphWidth = textureWidth * (1.0f / current.Metrics.Scale);
+                var glyphHeight = textureHeight * (1.0f / current.Metrics.Scale) * scale;
+                var glyphWidth = textureWidth * (1.0f / current.Metrics.Scale) * scale;
 
-                var left = pen.X - current.Metrics.Translation.X;
-                var bottom = pen.Y - current.Metrics.Translation.Y * yFlip;
+                var left = pen.X - current.Metrics.Translation.X * scale;
+                var bottom = pen.Y - current.Metrics.Translation.Y * yFlip * scale;
 
                 var right = left + glyphWidth;
                 var top = bottom + glyphHeight * yFlip;
@@ -92,7 +92,7 @@ namespace MonoMSDF.Text
                     this.Quad.Render(this.Device, new Vector2(left, bottom), new Vector2(right, top));
                 }
 
-                pen.X += current.Metrics.Advance;
+                pen.X += current.Metrics.Advance * scale;
 
                 if (this.EnableKerning && i < sequence.Length - 1)
                 {
@@ -104,7 +104,7 @@ namespace MonoMSDF.Text
                     if (pair != null)
                     {
 
-                        pen.X += pair.Advance;
+                        pen.X += pair.Advance * scale;
                     }
 
                 }
