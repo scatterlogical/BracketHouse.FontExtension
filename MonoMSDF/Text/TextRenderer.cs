@@ -32,6 +32,7 @@ namespace MonoMSDF.Text
             this.OptimizeForTinyText = false;
             this.PositiveYIsDown = false;
             this.PositionByTop = false;
+            this.LineHeight = 1;
         }
 
         public Color ForegroundColor { get; set; }
@@ -49,6 +50,10 @@ namespace MonoMSDF.Text
         /// Adjust the text's position such that the given position is the top, rather than the baseline.
         /// </summary>
         public bool PositionByTop { get; set; }
+        /// <summary>
+        /// Multiplier for line height. The base line height is the width of an M.
+        /// </summary>
+        public float LineHeight { get; set; }
 
         public void Render(string text, Matrix worldViewProjection, Vector2? position = null, float scale = 1)
         {
@@ -74,11 +79,11 @@ namespace MonoMSDF.Text
             }
 
             int yFlip = PositiveYIsDown ? -1 : 1;
-            float lineHeight = 32 * scale;
+            float lineHeightUnits = GetRenderInfo('M').Metrics.Advance * scale * LineHeight;
             Vector2 penStart = position == null ? Vector2.Zero : (Vector2)position;
 			if (PositionByTop)
 			{
-				penStart.Y -= lineHeight * yFlip;
+				penStart.Y -= lineHeightUnits * yFlip;
 			}
             Vector2 pen = penStart;
             for (var i = 0; i < sequence.Length; i++)
@@ -121,7 +126,7 @@ namespace MonoMSDF.Text
 				if (current.Character == '\n')
 				{
                     pen.X = penStart.X;
-                    pen.Y += lineHeight;
+                    pen.Y += lineHeightUnits;
 				}
             }            
         }
