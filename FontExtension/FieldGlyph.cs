@@ -16,6 +16,11 @@ namespace FontExtension
 		[ContentSerializer] private readonly float AtlasRightBackend;
 		[ContentSerializer] private readonly float AtlasBottomBackend;
 
+		public FieldGlyph()
+		{
+
+		}
+
 		public FieldGlyph(char c, float advance, float pl, float pr, float pt, float pb, float al, float ar, float at, float ab)
 		{
 			CharacterBackend = c;

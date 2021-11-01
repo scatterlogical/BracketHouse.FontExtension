@@ -16,6 +16,11 @@ namespace FontExtension
         [ContentSerializer] private readonly Dictionary<(char, char), float> KerningBackend;
         [ContentSerializer] private readonly byte[] BitmapBackend;
 
+        public FieldFont()
+		{
+
+		}
+
         public FieldFont(string name, IEnumerable<FieldGlyph> glyphs, Dictionary<(char, char), float> kerning, float pxRange, float lineHeight, byte[] bitmap)
         {
             this.NameBackend = name;
