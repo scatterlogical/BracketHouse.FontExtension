@@ -6,7 +6,6 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content.Pipeline;
-using RoyT.TrueType.Helpers;
 
 namespace FontExtension
 {
@@ -130,13 +129,11 @@ namespace FontExtension
         {
             var pairs = new List<KerningPair>();
 
-            var font = RoyT.TrueType.TrueTypeFont.FromFile(path);
-
             foreach (var left in characters)
             {
                 foreach (var right in characters)
                 {
-                    var kerning = KerningHelper.GetHorizontalKerning(left, right, font);                          
+                    float kerning = 0;
                     if (kerning > 0 || kerning < 0)
                     {
                         // Scale the kerning by the same factor MSDFGEN scales it
