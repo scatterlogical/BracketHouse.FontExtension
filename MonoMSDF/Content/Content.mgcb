@@ -10,17 +10,17 @@
 
 #-------------------------------- References --------------------------------#
 
-/reference:..\..\FontExtension\bin\Debug\FontExtension.dll
+/reference:..\..\FontExtension\bin\Debug\netcoreapp3.1\FontExtension.dll
 
 #---------------------------------- Content ---------------------------------#
 
-#begin arial.ini
+#begin arial.json
 /importer:FieldFontImporter
 /processor:FieldFontProcessor
 /processorParam:ExternalPath=msdfgen.exe
 /processorParam:Resolution=64
 /processorParam:Range=4
-/build:arial.ini
+/build:arial.json
 
 #begin FieldFontEffect.fx
 /importer:EffectImporter
@@ -28,3 +28,18 @@
 /processorParam:DebugMode=Auto
 /build:FieldFontEffect.fx
 
+#begin renogare.json
+/importer:FieldFontImporter
+/processor:FieldFontProcessor
+/processorParam:ExternalPath=msdfgen.exe
+/processorParam:Resolution=32
+/processorParam:Range=4
+/build:renogare.json
+
+#begin marker.json
+/importer:FieldFontImporter
+/processor:FieldFontProcessor
+/processorParam:ExternalPath=msdfgen.exe
+/processorParam:Resolution=32
+/processorParam:Range=4
+/build:marker.json
