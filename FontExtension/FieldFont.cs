@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 
 namespace FontExtension
@@ -137,6 +138,57 @@ namespace FontExtension
                 return backupGlyph;
             }
             throw new InvalidOperationException($"Character '{c}' not found in font {this.Name}. Did you forget to include it in the character ranges?");
+        }
+        /// <summary>
+        /// Measure how large a string is.
+        /// </summary>
+        /// <param name="text">String to measure.</param>
+        /// <param name="lineHeight">Lineheight to use instead of the lineheight of the font.</param>
+        /// <param name="kerning">Whether to use kerning.</param>
+        /// <returns>Width and height of the string if drawn with scale 1.0.</returns>
+        public Vector2 MeasureString(string text, float lineHeight, bool kerning)
+		{
+            float currentLine = 0;
+            Vector2 measure = Vector2.Zero;
+            measure.Y = lineHeight;
+            for (int i = 0; i < text.Length; i++)
+			{
+                FieldGlyph current = GetGlyph(text[i]);
+                currentLine += current.Advance;
+                if (kerning && i < text.Length - 1)
+                {
+                    if (Kerning.TryGetValue((text[i], text[i + 1]), out float kern))
+                    {
+                        currentLine += kern;
+                    }
+                }
+                measure.X = MathF.Max(measure.X, currentLine);
+                if (text[i] == '\n')
+                {
+                    currentLine = 0;
+                    measure.Y += lineHeight;
+                }
+            }
+            return measure;
+		}
+        /// <summary>
+        /// Measure how large a string is, with kerning enabled and using the font's lineheight.
+        /// </summary>
+        /// <param name="text">String to measure.</param>
+        /// <returns>Width and height of the string if drawn with scale 1.0.</returns>
+        public Vector2 MeasureString(string text)
+		{
+            return MeasureString(text, LineHeight, true);
+        }
+        /// <summary>
+        /// Measure how large a string is, using the font's lineheight.
+        /// </summary>
+        /// <param name="text">String to measure.</param>
+        /// <param name="kerning">Whether to use kerning.</param>
+        /// <returns>Width and height of the string if drawn with scale 1.0.</returns>
+        public Vector2 MeasureString(string text, bool kerning)
+        {
+            return MeasureString(text, LineHeight, kerning);
         }
     }
 }
