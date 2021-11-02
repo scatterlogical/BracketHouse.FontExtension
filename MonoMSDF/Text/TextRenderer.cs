@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FontExtension;
@@ -16,6 +17,10 @@ namespace MonoMSDF.Text
 		private readonly FieldFont Font;
 		private readonly Texture2D AtlasTexture;
 		private readonly GraphicsDevice Device;
+
+		private VertexPositionColorTexture[] LayoutVertices = new VertexPositionColorTexture[100 * 4];
+		private int[] LayoutIndices = new int[100 * 6];
+		private int GlyphsLayouted = 0;
 
 		public TextRenderer(Effect effect, FieldFont font, GraphicsDevice device)
 		{
@@ -43,7 +48,7 @@ namespace MonoMSDF.Text
 		/// </summary>
 		public bool PositiveYIsDown { get; set; }
 		/// <summary>
-		/// Position text by the baseline, instead of by the top.
+		/// Position text by the baseline of the first line of text, instead of by the top.
 		/// </summary>
 		public bool PositionByBaseline { get; set; }
 		/// <summary>
@@ -55,44 +60,46 @@ namespace MonoMSDF.Text
 		/// </summary>
 		public Matrix WorldViewProjection { get; set; }
 
-		public void Render(string text, Vector2 position, Color color, float scale = 16)
+		/// <summary>
+		/// Start over with layouting.
+		/// </summary>
+		public void ResetLayout()
+		{
+			GlyphsLayouted = 0;
+		}
+		/// <summary>
+		/// Perform layouting for a string so that the text can be rendered.
+		/// </summary>
+		/// <param name="text">Text to draw.</param>
+		/// <param name="position">Position to draw to.</param>
+		/// <param name="depth">Z coordinate to use for glyph vertices</param>
+		/// <param name="lineHeight">Override lineheight of font.</param>
+		/// <param name="scale">How large to draw the text.</param>
+		/// <param name="color">Color to draw text.</param>
+		/// <param name="kerning">Override <c>EnableKerning</c> property.</param>
+		/// <param name="yIsDown">Override <c>PositiveYIsDown</c> property.</param>
+		/// <param name="positionByBaseline">Override <c>PositionByBaseline</c> property.</param>
+		/// <param name="rotation">NOT YET IMPLEMENTED</param>
+		/// <param name="origin">NOT YET IMPLEMENTED</param>
+		void LayoutText(string text, Vector2 position, float depth, float lineHeight, float scale, Color color, bool kerning, bool yIsDown, bool positionByBaseline, float rotation, Vector2 origin)
 		{
 			if (string.IsNullOrEmpty(text))
 			{
 				return;
 			}
-
-			var textureWidth = AtlasTexture.Width;
-			var textureHeight = AtlasTexture.Height;
-
-			this.Effect.Parameters["WorldViewProjection"].SetValue(WorldViewProjection);
-			this.Effect.Parameters["PxRange"].SetValue(this.Font.PxRange);
-			this.Effect.Parameters["TextureSize"].SetValue(new Vector2(textureWidth, textureHeight));
-			this.Effect.Parameters["GlyphTexture"].SetValue(AtlasTexture);
-			this.Effect.CurrentTechnique.Passes[0].Apply();
-
-			if (this.OptimizeForTinyText)
+			if (GlyphsLayouted + text.Length > LayoutVertices.Length / 4)
 			{
-				this.Effect.CurrentTechnique = this.Effect.Techniques[SmallTextTechnique];
+				SetLayoutCacheSize(GlyphsLayouted + text.Length);
 			}
-			else
-			{
-				this.Effect.CurrentTechnique = this.Effect.Techniques[LargeTextTechnique];
-			}
+			int yFlip = yIsDown ? -1 : 1;
 
-			int yFlip = PositiveYIsDown ? -1 : 1;
-
-			float scaledLineheight = this.LineHeight <= 0 ? Font.LineHeight * scale : this.LineHeight * scale;
 			Vector2 penStart = position;
-			if (!PositionByBaseline)
+			if (!positionByBaseline)
 			{
 				penStart.Y += scale * Font.Ascender * yFlip;
 			}
 			Vector2 pen = penStart;
-			VertexPositionColorTexture[] verts = new VertexPositionColorTexture[text.Length * 4];
-			int[] indices = new int[text.Length * 6];
-			int glyphQuads = 0;
-			verts[0].Position.X = 3;
+
 			for (var i = 0; i < text.Length; i++)
 			{
 				FieldGlyph current = Font.GetGlyph(text[i]);
@@ -104,48 +111,52 @@ namespace MonoMSDF.Text
 					float top = pen.Y - current.PlaneTop * scale * yFlip;
 					float bottom = pen.Y - current.PlaneBottom * scale * yFlip;
 
-					verts[glyphQuads * 4 + 0].Position.X = right;
-					verts[glyphQuads * 4 + 0].Position.Y = bottom;
+					LayoutVertices[GlyphsLayouted * 4 + 0].Position.X = right;
+					LayoutVertices[GlyphsLayouted * 4 + 0].Position.Y = bottom;
+					LayoutVertices[GlyphsLayouted * 4 + 0].Position.Z = depth;
 
-					verts[glyphQuads * 4 + 1].Position.X = left;
-					verts[glyphQuads * 4 + 1].Position.Y = bottom;
+					LayoutVertices[GlyphsLayouted * 4 + 1].Position.X = left;
+					LayoutVertices[GlyphsLayouted * 4 + 1].Position.Y = bottom;
+					LayoutVertices[GlyphsLayouted * 4 + 1].Position.Z = depth;
 
-					verts[glyphQuads * 4 + 2].Position.X = left;
-					verts[glyphQuads * 4 + 2].Position.Y = top;
+					LayoutVertices[GlyphsLayouted * 4 + 2].Position.X = left;
+					LayoutVertices[GlyphsLayouted * 4 + 2].Position.Y = top;
+					LayoutVertices[GlyphsLayouted * 4 + 2].Position.Z = depth;
 
-					verts[glyphQuads * 4 + 3].Position.X = right;
-					verts[glyphQuads * 4 + 3].Position.Y = top;
+					LayoutVertices[GlyphsLayouted * 4 + 3].Position.X = right;
+					LayoutVertices[GlyphsLayouted * 4 + 3].Position.Y = top;
+					LayoutVertices[GlyphsLayouted * 4 + 3].Position.Z = depth;
 
-					verts[glyphQuads * 4 + 0].TextureCoordinate.X = current.AtlasRight;
-					verts[glyphQuads * 4 + 0].TextureCoordinate.Y = current.AtlasBottom;
+					LayoutVertices[GlyphsLayouted * 4 + 0].TextureCoordinate.X = current.AtlasRight;
+					LayoutVertices[GlyphsLayouted * 4 + 0].TextureCoordinate.Y = current.AtlasBottom;
 
-					verts[glyphQuads * 4 + 1].TextureCoordinate.X = current.AtlasLeft;
-					verts[glyphQuads * 4 + 1].TextureCoordinate.Y = current.AtlasBottom;
+					LayoutVertices[GlyphsLayouted * 4 + 1].TextureCoordinate.X = current.AtlasLeft;
+					LayoutVertices[GlyphsLayouted * 4 + 1].TextureCoordinate.Y = current.AtlasBottom;
 
-					verts[glyphQuads * 4 + 2].TextureCoordinate.X = current.AtlasLeft;
-					verts[glyphQuads * 4 + 2].TextureCoordinate.Y = current.AtlasTop;
+					LayoutVertices[GlyphsLayouted * 4 + 2].TextureCoordinate.X = current.AtlasLeft;
+					LayoutVertices[GlyphsLayouted * 4 + 2].TextureCoordinate.Y = current.AtlasTop;
 
-					verts[glyphQuads * 4 + 3].TextureCoordinate.X = current.AtlasRight;
-					verts[glyphQuads * 4 + 3].TextureCoordinate.Y = current.AtlasTop;
+					LayoutVertices[GlyphsLayouted * 4 + 3].TextureCoordinate.X = current.AtlasRight;
+					LayoutVertices[GlyphsLayouted * 4 + 3].TextureCoordinate.Y = current.AtlasTop;
 
-					verts[glyphQuads * 4 + 0].Color = color;
-					verts[glyphQuads * 4 + 1].Color = color;
-					verts[glyphQuads * 4 + 2].Color = color;
-					verts[glyphQuads * 4 + 3].Color = color;
+					LayoutVertices[GlyphsLayouted * 4 + 0].Color = color;
+					LayoutVertices[GlyphsLayouted * 4 + 1].Color = color;
+					LayoutVertices[GlyphsLayouted * 4 + 2].Color = color;
+					LayoutVertices[GlyphsLayouted * 4 + 3].Color = color;
 
-					indices[glyphQuads * 6 + 0] = glyphQuads * 4 + 0;
-					indices[glyphQuads * 6 + 1] = glyphQuads * 4 + 1;
-					indices[glyphQuads * 6 + 2] = glyphQuads * 4 + 2;
-					indices[glyphQuads * 6 + 3] = glyphQuads * 4 + 2;
-					indices[glyphQuads * 6 + 4] = glyphQuads * 4 + 3;
-					indices[glyphQuads * 6 + 5] = glyphQuads * 4 + 0;
+					LayoutIndices[GlyphsLayouted * 6 + 0] = GlyphsLayouted * 4 + 0;
+					LayoutIndices[GlyphsLayouted * 6 + 1] = GlyphsLayouted * 4 + 1;
+					LayoutIndices[GlyphsLayouted * 6 + 2] = GlyphsLayouted * 4 + 2;
+					LayoutIndices[GlyphsLayouted * 6 + 3] = GlyphsLayouted * 4 + 2;
+					LayoutIndices[GlyphsLayouted * 6 + 4] = GlyphsLayouted * 4 + 3;
+					LayoutIndices[GlyphsLayouted * 6 + 5] = GlyphsLayouted * 4 + 0;
 
-					glyphQuads++;
+					GlyphsLayouted++;
 				}
 
 				pen.X += current.Advance * scale;
 
-				if (this.EnableKerning && i < text.Length - 1)
+				if (kerning && i < text.Length - 1)
 				{
 					if (Font.Kerning.TryGetValue((text[i], text[i + 1]), out float kern))
 					{
@@ -155,11 +166,103 @@ namespace MonoMSDF.Text
 				if (text[i] == '\n')
 				{
 					pen.X = penStart.X;
-					pen.Y -= scaledLineheight * yFlip;
+					pen.Y -= lineHeight * scale * yFlip;
 				}
 			}
-			//DRAW
-			Device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, verts, 0, glyphQuads * 4, indices, 0, glyphQuads * 2);
+		}
+		/// <summary>
+		/// Perform layouting for a string so that the text can be rendered.
+		/// </summary>
+		/// <param name="text">Text to draw.</param>
+		/// <param name="position">Position to draw to.</param>
+		/// <param name="color">Color to draw text.</param>
+		/// <param name="scale">How large to draw the text.</param>
+		/// <param name="rotation">NOT YET IMPLEMENTED</param>
+		/// <param name="origin">NOT YET IMPLEMENTED</param>
+		/// <param name="depth">Z coordinate to use for glyph vertices</param>
+		public void LayoutText(string text, Vector2 position, Color color, float scale, float rotation, Vector2 origin, float depth = 1f)
+		{
+			LayoutText(text, position, depth, Font.LineHeight, scale, color, EnableKerning, PositiveYIsDown, PositionByBaseline, rotation, origin);
+		}
+		/// <summary>
+		/// Perform layouting for a string so that the text can be rendered.
+		/// </summary>
+		/// <param name="text">Text to draw.</param>
+		/// <param name="position">Position to draw to.</param>
+		/// <param name="color">Color to draw text.</param>
+		/// <param name="scale">How large to draw the text.</param>
+		/// <param name="depth">Z coordinate to use for glyph vertices</param>
+		public void LayoutText(string text, Vector2 position, Color color, float scale = 16, float depth = 1f)
+		{
+			LayoutText(text, position, depth, Font.LineHeight, scale, color, EnableKerning, PositiveYIsDown, PositionByBaseline, 0, Vector2.Zero);
+		}
+		/// <summary>
+		/// Render text that has been layouted since last use of ResetLayout, overriding settings from TextRenderer.
+		/// </summary>
+		/// <param name="worldViewProjection">WorldViewProjection Matrix to use during rendering.</param>
+		/// <param name="tinyText">Disables text anti-aliasing which might cause blurry text when the text is rendered tiny</param>
+		public void RenderLayoutedText(Matrix worldViewProjection, bool tinyText = false)
+		{
+			if (GlyphsLayouted == 0)
+			{
+				return;
+			}
+			var textureWidth = AtlasTexture.Width;
+			var textureHeight = AtlasTexture.Height;
+			this.Effect.Parameters["WorldViewProjection"].SetValue(worldViewProjection);
+			this.Effect.Parameters["PxRange"].SetValue(this.Font.PxRange);
+			this.Effect.Parameters["TextureSize"].SetValue(new Vector2(textureWidth, textureHeight));
+			this.Effect.Parameters["GlyphTexture"].SetValue(AtlasTexture);
+			this.Effect.CurrentTechnique.Passes[0].Apply();
+			if (tinyText)
+			{
+				this.Effect.CurrentTechnique = this.Effect.Techniques[SmallTextTechnique];
+			}
+			else
+			{
+				this.Effect.CurrentTechnique = this.Effect.Techniques[LargeTextTechnique];
+			}
+			Device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, LayoutVertices, 0, GlyphsLayouted * 4, LayoutIndices, 0, GlyphsLayouted * 2);
+		}
+		/// <summary>
+		/// Render text that has been layouted since last use of ResetLayout, overriding WorldViewProjection matrix from TextRenderer.
+		/// </summary>
+		/// <param name="worldViewProjection">WorldViewProjection Matrix to use during rendering.</param>
+		public void RenderLayoutedText(Matrix worldViewProjection)
+		{
+			RenderLayoutedText(worldViewProjection, OptimizeForTinyText);
+		}
+		/// <summary>
+		/// Render text that has been layouted since last use of ResetLayout.
+		/// </summary>
+		public void RenderLayoutedText()
+		{
+			RenderLayoutedText(WorldViewProjection, OptimizeForTinyText);
+		}
+		/// <summary>
+		/// Change the sizes of LayoutVertices and LayoutIndices
+		/// </summary>
+		/// <param name="newSize">New capacity of glyph layout cache, in number of glyphs.</param>
+		private void SetLayoutCacheSize(int newSize)
+		{
+			VertexPositionColorTexture[] newVerts = new VertexPositionColorTexture[newSize * 4];
+			int[] newIndices = new int[newSize * 6];
+			int copyAmount = Math.Min(newSize, LayoutVertices.Length / 4);
+			for (int i = 0; i < copyAmount; i++)
+			{
+				newVerts[i * 4 + 0] = LayoutVertices[i * 4 + 0];
+				newVerts[i * 4 + 1] = LayoutVertices[i * 4 + 1];
+				newVerts[i * 4 + 2] = LayoutVertices[i * 4 + 2];
+				newVerts[i * 4 + 3] = LayoutVertices[i * 4 + 3];
+				newIndices[i * 6 + 0] = LayoutIndices[i * 6 + 0];
+				newIndices[i * 6 + 1] = LayoutIndices[i * 6 + 1];
+				newIndices[i * 6 + 2] = LayoutIndices[i * 6 + 2];
+				newIndices[i * 6 + 3] = LayoutIndices[i * 6 + 3];
+				newIndices[i * 6 + 4] = LayoutIndices[i * 6 + 4];
+				newIndices[i * 6 + 5] = LayoutIndices[i * 6 + 5];
+			}
+			LayoutVertices = newVerts;
+			LayoutIndices = newIndices;
 		}
 	}
 }

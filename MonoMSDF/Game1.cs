@@ -89,13 +89,11 @@ namespace MonoMSDF
 
 			this.textRenderer = new TextRenderer(effect, font, this.GraphicsDevice)
 			{
-				PositionByTop = true,
 				//LineHeight = 1f,
 				//OptimizeForTinyText = true
 			};
 			this.markerRenderer = new TextRenderer(effect, markerFont, this.GraphicsDevice)
 			{
-				PositionByTop = true,
 				PositiveYIsDown = true
 			};
 		}
@@ -142,8 +140,9 @@ namespace MonoMSDF
 			var wvp = world * view * projection;
 			textRenderer.PositiveYIsDown = false;
 			textRenderer.WorldViewProjection = wvp;
-			this.textRenderer.Render("→~!435&^%$", Vector2.Zero, Color.White, 32);
-
+			this.textRenderer.ResetLayout();
+			this.textRenderer.LayoutText("→~!435&^%$", Vector2.Zero, Color.White, 32);
+			this.textRenderer.RenderLayoutedText();
 
 			world = Matrix.CreateScale(0.01f) * Matrix.CreateRotationY((float)gameTime.TotalGameTime.TotalSeconds) * Matrix.CreateRotationZ(MathHelper.PiOver4);
 			view = Matrix.CreateLookAt(Vector3.Backward, Vector3.Forward, Vector3.Up);
@@ -154,25 +153,33 @@ namespace MonoMSDF
 				1000.0f);
 
 			wvp = world * view * projection;
-			textRenderer.WorldViewProjection = wvp;
-			this.textRenderer.Render("          To Infinity And Beyond!", Vector2.Zero, Color.White, 32);
+			this.textRenderer.ResetLayout();
+			this.textRenderer.LayoutText("          To Infinity And Beyond!", Vector2.Zero, Color.White, 32);
+			this.textRenderer.RenderLayoutedText(wvp);
+			
 			Matrix ortowvp = worldMatrix * viewMatrix * projectionMatrix;
 
 			textRenderer.PositiveYIsDown = true;
 			textRenderer.WorldViewProjection = ortowvp;
 			markerRenderer.WorldViewProjection = ortowvp;
-			this.textRenderer.Render("ORTOGRAPHIC!", new Vector2(0, 0), Color.Yellow, 32);
-			this.textRenderer.Render("Text at 2x scale.", new Vector2(0, 32), Color.Red, 64f);
-			this.textRenderer.Render("Text at half scale?", new Vector2(0, 96), Color.Green, 16f);
-			this.textRenderer.Render("ÑNCâarP", new Vector2(0, 112), Color.Gold, 32);
-			this.textRenderer.Render("Text with kerning: AWAY", new Vector2(0, 144), Color.Gold, 32);
+			this.textRenderer.ResetLayout();
+			this.textRenderer.LayoutText("ORTOGRAPHIC!", new Vector2(0, 0), Color.Yellow, 32);
+			this.textRenderer.LayoutText("Text at 2x scale.", new Vector2(0, 32), Color.Red, 64f);
+			this.textRenderer.LayoutText("Text at half scale?", new Vector2(0, 96), Color.Green, 16f);
+			this.textRenderer.LayoutText("ÑNCâarP", new Vector2(0, 112), Color.Gold, 32);
+			this.textRenderer.LayoutText("Text with kerning: AWAY", new Vector2(0, 144), Color.Gold, 32);
 			textRenderer.EnableKerning = false;
-			this.textRenderer.Render("Text without kerning: AWAY\n With You", new Vector2(0, 172), Color.Gold, 32);
+			this.textRenderer.LayoutText("Text without kerning: AWAY\n With You", new Vector2(0, 172), Color.Gold, 32);
 			textRenderer.EnableKerning = true;
-			this.textRenderer.Render($"Hære's something. Comma: ,", new Vector2(0, 720-128), Color.Gold, 32);
-			this.textRenderer.Render($"Frame time: {frameTicks} ticks\nFrame time: {frameTime}ms\nThird line", new Vector2(0, 720-256), Color.Gold, 64);
-			this.textRenderer.Render($"Running for {gameTime.TotalGameTime.TotalSeconds} seconds", new Vector2(0, 720-32), Color.Gold, 32);
-			this.markerRenderer.Render($"AWAY\nThis is scale {scale}", Mouse.GetState().Position.ToVector2(), Color.Black * 0.25f, scale * 32);
+			this.textRenderer.LayoutText($"Hære's something. Comma: ,", new Vector2(0, 720-128), Color.Black, 32);
+			this.textRenderer.LayoutText($"Frame time: {frameTicks} ticks\nFrame time: {frameTime}ms\nThird line", new Vector2(0, 720-256), Color.Gold, 64);
+			this.textRenderer.LayoutText($"Running for {gameTime.TotalGameTime.TotalSeconds} seconds", new Vector2(0, 720-32), Color.Gold, 32);
+			this.textRenderer.RenderLayoutedText();
+
+			this.markerRenderer.ResetLayout();
+			this.markerRenderer.LayoutText($"AWAY\nThis is scale {scale}", Mouse.GetState().Position.ToVector2(), Color.Black, scale * 32, -2);
+			this.markerRenderer.RenderLayoutedText();
+
 			frameTicks = frameWatch.ElapsedTicks;
 			frameTime = frameWatch.ElapsedMilliseconds;
 			frameWatch.Stop();
