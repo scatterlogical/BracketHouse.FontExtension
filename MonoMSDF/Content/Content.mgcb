@@ -17,9 +17,9 @@
 #begin arial.json
 /importer:FieldFontImporter
 /processor:FieldFontProcessor
-/processorParam:ExternalPath=msdfgen.exe
+/processorParam:ExternalPath=msdf-atlas-gen.exe
 /processorParam:Resolution=64
-/processorParam:Range=4
+/processorParam:Range=2
 /build:arial.json
 
 #begin FieldFontEffect.fx
@@ -28,18 +28,19 @@
 /processorParam:DebugMode=Auto
 /build:FieldFontEffect.fx
 
+#begin marker.json
+/importer:FieldFontImporter
+/processor:FieldFontProcessor
+/processorParam:ExternalPath=msdf-atlas-gen.exe
+/processorParam:Resolution=32
+/processorParam:Range=4
+/build:marker.json
+
 #begin renogare.json
 /importer:FieldFontImporter
 /processor:FieldFontProcessor
-/processorParam:ExternalPath=msdfgen.exe
+/processorParam:ExternalPath=msdf-atlas-gen.exe
 /processorParam:Resolution=32
 /processorParam:Range=4
 /build:renogare.json
 
-#begin marker.json
-/importer:FieldFontImporter
-/processor:FieldFontProcessor
-/processorParam:ExternalPath=msdfgen.exe
-/processorParam:Resolution=32
-/processorParam:Range=4
-/build:marker.json
