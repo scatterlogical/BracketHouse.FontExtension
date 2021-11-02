@@ -82,12 +82,12 @@ namespace MonoMSDF
 		protected override void LoadContent()
 		{
 			var effect = this.Content.Load<Effect>("FieldFontEffect");
-			var font = this.Content.Load<FieldFont>("marker");
+			var font = this.Content.Load<FieldFont>("arial");
 
 			this.textRenderer = new TextRenderer(effect, font, this.GraphicsDevice)
 			{
 				PositionByTop = true,
-				LineHeight = 1f,
+				//LineHeight = 1f,
 				//OptimizeForTinyText = true
 			};
 		}
@@ -126,7 +126,7 @@ namespace MonoMSDF
 			var wvp = world * view * projection;
 			textRenderer.ForegroundColor = Color.White;
 			textRenderer.PositiveYIsDown = false;
-			this.textRenderer.Render("→~!435&^%$", wvp);
+			this.textRenderer.Render("→~!435&^%$", wvp, Vector2.Zero, 32);
 
 
 			world = Matrix.CreateScale(0.01f) * Matrix.CreateRotationY((float)gameTime.TotalGameTime.TotalSeconds) * Matrix.CreateRotationZ(MathHelper.PiOver4);
@@ -139,27 +139,27 @@ namespace MonoMSDF
 
 			wvp = world * view * projection;
 
-			this.textRenderer.Render("          To Infinity And Beyond!", wvp);
+			this.textRenderer.Render("          To Infinity And Beyond!", wvp, Vector2.Zero, 32);
 			Matrix ortowvp = worldMatrix * viewMatrix * projectionMatrix;
 
 			textRenderer.ForegroundColor = Color.Yellow;
 			textRenderer.PositiveYIsDown = true;
-			this.textRenderer.Render("ORTOGRAPHIC!", ortowvp, new Vector2(0, 0));
+			this.textRenderer.Render("ORTOGRAPHIC!", ortowvp, new Vector2(0, 0),32);
 			textRenderer.ForegroundColor = Color.Red;
-			this.textRenderer.Render("Text at 2x scale.", ortowvp, new Vector2(0, 32), 2f);
+			this.textRenderer.Render("Text at 2x scale.", ortowvp, new Vector2(0, 32), 64f);
 			textRenderer.ForegroundColor = Color.Green;
-			this.textRenderer.Render("Text at half scale?", ortowvp, new Vector2(0, 96), 0.5f);
+			this.textRenderer.Render("Text at half scale?", ortowvp, new Vector2(0, 96), 16f);
 			textRenderer.ForegroundColor = Color.Gold;
-			this.textRenderer.Render("ÑNCâarP", ortowvp, new Vector2(0, 112));
-			this.textRenderer.Render("AWAY", ortowvp, new Vector2(0, 144));
+			this.textRenderer.Render("ÑNCâarP", ortowvp, new Vector2(0, 112), 32);
+			this.textRenderer.Render("AWAY", ortowvp, new Vector2(0, 144), 32);
 			textRenderer.EnableKerning = false;
-			this.textRenderer.Render("AWAY\n With You", ortowvp, new Vector2(0, 172));
+			this.textRenderer.Render("AWAY\n With You", ortowvp, new Vector2(0, 172), 32);
 			textRenderer.EnableKerning = true;
-			this.textRenderer.Render($"Hære's something. Comma: ,", ortowvp, new Vector2(0, 720-128), 1.3f);
-			this.textRenderer.Render($"Frame time: {frameTicks} ticks\nFrame time: {frameTime}ms\nThird line", ortowvp, new Vector2(0, 720-96), 2);
+			this.textRenderer.Render($"Hære's something. Comma: ,", ortowvp, new Vector2(0, 720-128), 32);
+			this.textRenderer.Render($"Frame time: {frameTicks} ticks\nFrame time: {frameTime}ms\nThird line", ortowvp, new Vector2(0, 720-256), 64);
 			//this.textRenderer.Render($"Frame time {frameTime}ms", ortowvp, new Vector2(0, 720-32-16), 2);
-			this.textRenderer.Render($"Running for {gameTime.TotalGameTime.TotalSeconds} seconds", ortowvp, new Vector2(0, 720-32));
-			this.textRenderer.Render("AWAY\nAAAA	AAAAA	A	AAӄA	A	A", ortowvp, Mouse.GetState().Position.ToVector2(), scale);
+			this.textRenderer.Render($"Running for {gameTime.TotalGameTime.TotalSeconds} seconds", ortowvp, new Vector2(0, 720-32), 32);
+			this.textRenderer.Render("AWAY\nAAAA	AAAAA	A	AAӄA	A	A", ortowvp, Mouse.GetState().Position.ToVector2(), scale * 32);
 			frameTicks = frameWatch.ElapsedTicks;
 			frameTime = frameWatch.ElapsedMilliseconds;
 			frameWatch.Stop();
