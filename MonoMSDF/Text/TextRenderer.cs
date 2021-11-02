@@ -16,7 +16,6 @@ namespace MonoMSDF.Text
 		private readonly FieldFont Font;
 		private readonly Texture2D AtlasTexture;
 		private readonly GraphicsDevice Device;
-		private readonly Quad Quad;
 
 		public TextRenderer(Effect effect, FieldFont font, GraphicsDevice device)
 		{
@@ -27,8 +26,6 @@ namespace MonoMSDF.Text
 			{
 				this.AtlasTexture = Texture2D.FromStream(this.Device, stream);
 			}
-
-			this.Quad = new Quad();
 
 			this.ForegroundColor = Color.White;
 			this.EnableKerning = true;
@@ -88,9 +85,13 @@ namespace MonoMSDF.Text
 			Vector2 penStart = position;
 			if (PositionByTop)
 			{
-				penStart.Y -= scaledLineheight * yFlip;
+				penStart.Y -= scale * yFlip;
 			}
 			Vector2 pen = penStart;
+			VertexPositionColorTexture[] verts = new VertexPositionColorTexture[text.Length * 4];
+			int[] indices = new int[text.Length * 6];
+			int glyphQuads = 0;
+			verts[0].Position.X = 3;
 			for (var i = 0; i < text.Length; i++)
 			{
 				FieldGlyph current = Font.GetGlyph(text[i]);
@@ -101,7 +102,44 @@ namespace MonoMSDF.Text
 					float right = pen.X + current.PlaneRight * scale;
 					float top = pen.Y - current.PlaneTop * scale * yFlip;
 					float bottom = pen.Y - current.PlaneBottom * scale * yFlip;
-					this.Quad.Render(this.Device, new Vector2(left, bottom), new Vector2(right, top), new Vector2(current.AtlasLeft, current.AtlasBottom), new Vector2(current.AtlasRight, current.AtlasTop));
+
+					verts[glyphQuads * 4 + 0].Position.X = right;
+					verts[glyphQuads * 4 + 0].Position.Y = bottom;
+
+					verts[glyphQuads * 4 + 1].Position.X = left;
+					verts[glyphQuads * 4 + 1].Position.Y = bottom;
+
+					verts[glyphQuads * 4 + 2].Position.X = left;
+					verts[glyphQuads * 4 + 2].Position.Y = top;
+
+					verts[glyphQuads * 4 + 3].Position.X = right;
+					verts[glyphQuads * 4 + 3].Position.Y = top;
+
+					verts[glyphQuads * 4 + 0].TextureCoordinate.X = current.AtlasRight;
+					verts[glyphQuads * 4 + 0].TextureCoordinate.Y = current.AtlasBottom;
+
+					verts[glyphQuads * 4 + 1].TextureCoordinate.X = current.AtlasLeft;
+					verts[glyphQuads * 4 + 1].TextureCoordinate.Y = current.AtlasBottom;
+
+					verts[glyphQuads * 4 + 2].TextureCoordinate.X = current.AtlasLeft;
+					verts[glyphQuads * 4 + 2].TextureCoordinate.Y = current.AtlasTop;
+
+					verts[glyphQuads * 4 + 3].TextureCoordinate.X = current.AtlasRight;
+					verts[glyphQuads * 4 + 3].TextureCoordinate.Y = current.AtlasTop;
+
+					verts[glyphQuads * 4 + 0].Color = ForegroundColor;
+					verts[glyphQuads * 4 + 1].Color = ForegroundColor;
+					verts[glyphQuads * 4 + 2].Color = ForegroundColor;
+					verts[glyphQuads * 4 + 3].Color = ForegroundColor;
+
+					indices[glyphQuads * 6 + 0] = glyphQuads * 4 + 0;
+					indices[glyphQuads * 6 + 1] = glyphQuads * 4 + 1;
+					indices[glyphQuads * 6 + 2] = glyphQuads * 4 + 2;
+					indices[glyphQuads * 6 + 3] = glyphQuads * 4 + 2;
+					indices[glyphQuads * 6 + 4] = glyphQuads * 4 + 3;
+					indices[glyphQuads * 6 + 5] = glyphQuads * 4 + 0;
+
+					glyphQuads++;
 				}
 
 				pen.X += current.Advance * scale;
@@ -116,9 +154,11 @@ namespace MonoMSDF.Text
 				if (text[i] == '\n')
 				{
 					pen.X = penStart.X;
-					pen.Y += scaledLineheight;
+					pen.Y -= scaledLineheight * yFlip;
 				}
 			}
+			//DRAW
+			Device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, verts, 0, glyphQuads * 4, indices, 0, glyphQuads * 2);
 		}
 	}
 }
