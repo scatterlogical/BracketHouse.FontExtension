@@ -23,7 +23,10 @@ namespace MonoMSDF.Text
 			this.Effect = effect;
 			this.Font = font;
 			this.Device = device;
-			this.AtlasTexture = TextureFromBytes(font.Bitmap);
+			using (var stream = new MemoryStream(font.Bitmap))
+			{
+				this.AtlasTexture = Texture2D.FromStream(this.Device, stream);
+			}
 
 			this.Quad = new Quad();
 
@@ -32,12 +35,10 @@ namespace MonoMSDF.Text
 			this.OptimizeForTinyText = false;
 			this.PositiveYIsDown = false;
 			this.PositionByTop = false;
-			//this.LineHeight = 1;
 		}
 
 		public Color ForegroundColor { get; set; }
 		public bool EnableKerning { get; set; }
-
 		/// <summary>
 		/// Disables text anti-aliasing which might cause blurry text when the text is rendered tiny
 		/// </summary>
@@ -51,9 +52,9 @@ namespace MonoMSDF.Text
 		/// </summary>
 		public bool PositionByTop { get; set; }
 		/// <summary>
-		/// Multiplier for line height. The base line height is the width of an M.
+		/// Lineheight. If 0 or less, the lineheight from the font is used.
 		/// </summary>
-		//public float LineHeight { get; set; }
+		public float LineHeight { get; set; } = 0;
 
 		public void Render(string text, Matrix worldViewProjection, Vector2 position, float scale = 1)
 		{
@@ -62,7 +63,6 @@ namespace MonoMSDF.Text
 				return;
 			}
 
-			//var sequence = text.Select(GetRenderInfo).ToArray();
 			var textureWidth = AtlasTexture.Width;
 			var textureHeight = AtlasTexture.Height;
 
@@ -84,54 +84,28 @@ namespace MonoMSDF.Text
 
 			int yFlip = PositiveYIsDown ? -1 : 1;
 
-			//float lineHeightUnits = GetRenderInfo('M').Metrics.Advance * scale * LineHeight;
+			float scaledLineheight = this.LineHeight <= 0 ? Font.LineHeight * scale : this.LineHeight * scale;
 			Vector2 penStart = position;
 			if (PositionByTop)
 			{
-				penStart.Y -= 1 * scale * yFlip;
+				penStart.Y -= scaledLineheight * yFlip;
 			}
 			Vector2 pen = penStart;
 			for (var i = 0; i < text.Length; i++)
 			{
 				FieldGlyph current = Font.GetGlyph(text[i]);
 
-				//this.Effect.Parameters["GlyphTexture"].SetValue(current.Texture);
-
-				//var glyphHeight = textureHeight * (1.0f / current.Metrics.Scale) * scale;
-				//var glyphWidth = textureWidth * (1.0f / current.Metrics.Scale) * scale;
-
-				//var left = pen.X - current.Metrics.Translation.X * scale;
-				//var bottom = pen.Y - current.Metrics.Translation.Y * yFlip * scale;
-
-				//var right = left + glyphWidth;
-				//var top = bottom + glyphHeight * yFlip;
-
-				float left = pen.X + current.PlaneLeft * scale;
-				float right = pen.X + current.PlaneRight * scale;
-				float top = pen.Y - current.PlaneTop * scale * yFlip;
-				float bottom = pen.Y - current.PlaneBottom * scale * yFlip;
-
 				if (!char.IsWhiteSpace(text[i]))
 				{
+					float left = pen.X + current.PlaneLeft * scale;
+					float right = pen.X + current.PlaneRight * scale;
+					float top = pen.Y - current.PlaneTop * scale * yFlip;
+					float bottom = pen.Y - current.PlaneBottom * scale * yFlip;
 					this.Quad.Render(this.Device, new Vector2(left, bottom), new Vector2(right, top), new Vector2(current.AtlasLeft, current.AtlasBottom), new Vector2(current.AtlasRight, current.AtlasTop));
 				}
 
 				pen.X += current.Advance * scale;
 
-				//if (this.EnableKerning && i < sequence.Length - 1)
-				//{
-				//	var next = sequence[i + 1];
-
-				//	var pair = this.Font.KerningPairs.FirstOrDefault(
-				//		x => x.Left == current.Character && x.Right == next.Character);
-
-				//	if (pair != null)
-				//	{
-
-				//		pen.X += pair.Advance * scale;
-				//	}
-
-				//}
 				if (this.EnableKerning && i < text.Length - 1)
 				{
 					if (Font.Kerning.TryGetValue((text[i], text[i + 1]), out float kern))
@@ -142,42 +116,9 @@ namespace MonoMSDF.Text
 				if (text[i] == '\n')
 				{
 					pen.X = penStart.X;
-					pen.Y += 1 * scale;
+					pen.Y += scaledLineheight;
 				}
 			}
 		}
-
-		//private GlyphRenderInfo GetRenderInfo(char c)
-		//{
-		//	if (this.Cache.TryGetValue(c, out var value))
-		//	{
-		//		return value;
-		//	}
-
-		//	var unit = LoadRenderInfo(c);
-		//	this.Cache.Add(c, unit);
-		//	return unit;
-		//}
-
-		private Texture2D TextureFromBytes(byte[] bytes)
-		{
-			using (var stream = new MemoryStream(bytes))
-			{
-				return Texture2D.FromStream(this.Device, stream);
-			}
-		}
-
-		//private GlyphRenderInfo LoadRenderInfo(char c)
-		//{
-		//	var glyph = this.Font.GetGlyph(c);
-		//	using (var stream = new MemoryStream(glyph.Bitmap))
-		//	{
-		//		var texture = Texture2D.FromStream(this.Device, stream);
-		//		var unit = new GlyphRenderInfo(c, texture, glyph.Metrics);
-
-
-		//		return unit;
-		//	}
-		//}
 	}
 }
