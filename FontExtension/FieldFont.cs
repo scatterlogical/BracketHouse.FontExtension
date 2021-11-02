@@ -14,6 +14,8 @@ namespace FontExtension
         [ContentSerializer] private readonly string NameBackend;
         [ContentSerializer] private readonly float PxRangeBackend;
         [ContentSerializer] private readonly float LineHeightBackend;
+        [ContentSerializer] private readonly float AscenderBackend;
+        [ContentSerializer] private readonly float DescenderBackend;
         [ContentSerializer] private readonly Dictionary<(char, char), float> KerningBackend;
         [ContentSerializer] private readonly byte[] BitmapBackend;
 
@@ -22,11 +24,13 @@ namespace FontExtension
 
 		}
 
-        public FieldFont(string name, IEnumerable<FieldGlyph> glyphs, Dictionary<(char, char), float> kerning, float pxRange, float lineHeight, byte[] bitmap)
+        public FieldFont(string name, IEnumerable<FieldGlyph> glyphs, Dictionary<(char, char), float> kerning, float pxRange, float lineHeight, float ascender, float descender, byte[] bitmap)
         {
             this.NameBackend = name;
             this.PxRangeBackend = pxRange;
             this.LineHeightBackend = lineHeight;
+            this.AscenderBackend = ascender;
+            this.DescenderBackend = descender;
             this.KerningBackend = kerning;
 
             this.Glyphs = new Dictionary<char, FieldGlyph>(glyphs.Count());
@@ -47,6 +51,8 @@ namespace FontExtension
             string name = Path.GetFileNameWithoutExtension(jsonFile);
             var jdoc = JsonDocument.Parse(File.ReadAllText(jsonFile));
             float lineHeight = jdoc.RootElement.GetProperty("metrics").GetProperty("lineHeight").GetSingle();
+            float ascender = jdoc.RootElement.GetProperty("metrics").GetProperty("ascender").GetSingle();
+            float descender = jdoc.RootElement.GetProperty("metrics").GetProperty("descender").GetSingle();
             var jAtlas = jdoc.RootElement.GetProperty("atlas");
             float range = jAtlas.GetProperty("distanceRange").GetSingle();
             float width = jAtlas.GetProperty("width").GetSingle();
@@ -90,7 +96,7 @@ namespace FontExtension
                 float kernAdv = kernElement.GetProperty("advance").GetSingle();
                 kerning.Add((c1, c2), kernAdv);
             }
-            return new FieldFont(name, glyphs, kerning, range, lineHeight, bitmap);
+            return new FieldFont(name, glyphs, kerning, range, lineHeight, ascender, descender, bitmap);
         }
 
         /// <summary>
@@ -112,6 +118,16 @@ namespace FontExtension
         /// Lineheight for this font
         /// </summary>
         public float LineHeight => this.LineHeightBackend;
+
+        /// <summary>
+        /// Ascender for this font
+        /// </summary>
+        public float Ascender => this.AscenderBackend;
+        
+        /// <summary>
+        /// Descender for this font
+        /// </summary>
+        public float Descender => this.DescenderBackend;
 
         /// <summary>
         /// Distance field atlas for this font

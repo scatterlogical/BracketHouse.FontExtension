@@ -30,7 +30,7 @@ namespace MonoMSDF.Text
 			this.EnableKerning = true;
 			this.OptimizeForTinyText = false;
 			this.PositiveYIsDown = false;
-			this.PositionByTop = false;
+			this.PositionByBaseline = false;
 		}
 
 		public bool EnableKerning { get; set; }
@@ -43,9 +43,9 @@ namespace MonoMSDF.Text
 		/// </summary>
 		public bool PositiveYIsDown { get; set; }
 		/// <summary>
-		/// Adjust the text's position such that the given position is the top, rather than the baseline.
+		/// Position text by the baseline, instead of by the top.
 		/// </summary>
-		public bool PositionByTop { get; set; }
+		public bool PositionByBaseline { get; set; }
 		/// <summary>
 		/// Lineheight. If 0 or less, the lineheight from the font is used.
 		/// </summary>
@@ -84,9 +84,9 @@ namespace MonoMSDF.Text
 
 			float scaledLineheight = this.LineHeight <= 0 ? Font.LineHeight * scale : this.LineHeight * scale;
 			Vector2 penStart = position;
-			if (PositionByTop)
+			if (!PositionByBaseline)
 			{
-				penStart.Y -= scale * yFlip;
+				penStart.Y += scale * Font.Ascender * yFlip;
 			}
 			Vector2 pen = penStart;
 			VertexPositionColorTexture[] verts = new VertexPositionColorTexture[text.Length * 4];
