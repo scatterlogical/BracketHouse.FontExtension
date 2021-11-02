@@ -66,7 +66,7 @@ namespace MonoMSDF.Text
 			this.Effect.Parameters["WorldViewProjection"].SetValue(worldViewProjection);
 			this.Effect.Parameters["PxRange"].SetValue(this.Font.PxRange);
 			this.Effect.Parameters["TextureSize"].SetValue(new Vector2(textureWidth, textureHeight));
-			this.Effect.Parameters["ForegroundColor"].SetValue(ForegroundColor.ToVector4());
+			//this.Effect.Parameters["ForegroundColor"].SetValue(ForegroundColor.ToVector4());
 			this.Effect.Parameters["GlyphTexture"].SetValue(AtlasTexture);
 			this.Effect.CurrentTechnique.Passes[0].Apply();
 
