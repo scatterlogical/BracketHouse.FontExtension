@@ -27,14 +27,12 @@ namespace MonoMSDF.Text
 				this.AtlasTexture = Texture2D.FromStream(this.Device, stream);
 			}
 
-			this.ForegroundColor = Color.White;
 			this.EnableKerning = true;
 			this.OptimizeForTinyText = false;
 			this.PositiveYIsDown = false;
 			this.PositionByTop = false;
 		}
 
-		public Color ForegroundColor { get; set; }
 		public bool EnableKerning { get; set; }
 		/// <summary>
 		/// Disables text anti-aliasing which might cause blurry text when the text is rendered tiny
@@ -52,8 +50,12 @@ namespace MonoMSDF.Text
 		/// Lineheight. If 0 or less, the lineheight from the font is used.
 		/// </summary>
 		public float LineHeight { get; set; } = 0;
+		/// <summary>
+		/// WorldViewProjection Matrix to use during rendering.
+		/// </summary>
+		public Matrix WorldViewProjection { get; set; }
 
-		public void Render(string text, Matrix worldViewProjection, Vector2 position, float scale = 1)
+		public void Render(string text, Vector2 position, Color color, float scale = 16)
 		{
 			if (string.IsNullOrEmpty(text))
 			{
@@ -63,10 +65,9 @@ namespace MonoMSDF.Text
 			var textureWidth = AtlasTexture.Width;
 			var textureHeight = AtlasTexture.Height;
 
-			this.Effect.Parameters["WorldViewProjection"].SetValue(worldViewProjection);
+			this.Effect.Parameters["WorldViewProjection"].SetValue(WorldViewProjection);
 			this.Effect.Parameters["PxRange"].SetValue(this.Font.PxRange);
 			this.Effect.Parameters["TextureSize"].SetValue(new Vector2(textureWidth, textureHeight));
-			//this.Effect.Parameters["ForegroundColor"].SetValue(ForegroundColor.ToVector4());
 			this.Effect.Parameters["GlyphTexture"].SetValue(AtlasTexture);
 			this.Effect.CurrentTechnique.Passes[0].Apply();
 
@@ -127,10 +128,10 @@ namespace MonoMSDF.Text
 					verts[glyphQuads * 4 + 3].TextureCoordinate.X = current.AtlasRight;
 					verts[glyphQuads * 4 + 3].TextureCoordinate.Y = current.AtlasTop;
 
-					verts[glyphQuads * 4 + 0].Color = ForegroundColor;
-					verts[glyphQuads * 4 + 1].Color = ForegroundColor;
-					verts[glyphQuads * 4 + 2].Color = ForegroundColor;
-					verts[glyphQuads * 4 + 3].Color = ForegroundColor;
+					verts[glyphQuads * 4 + 0].Color = color;
+					verts[glyphQuads * 4 + 1].Color = color;
+					verts[glyphQuads * 4 + 2].Color = color;
+					verts[glyphQuads * 4 + 3].Color = color;
 
 					indices[glyphQuads * 6 + 0] = glyphQuads * 4 + 0;
 					indices[glyphQuads * 6 + 1] = glyphQuads * 4 + 1;
