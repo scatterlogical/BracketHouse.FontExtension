@@ -37,7 +37,9 @@ namespace MonoMSDF.Text
 			this.PositiveYIsDown = false;
 			this.PositionByBaseline = false;
 		}
-
+		/// <summary>
+		/// Use kerning when layouting text.
+		/// </summary>
 		public bool EnableKerning { get; set; }
 		/// <summary>
 		/// Disables text anti-aliasing which might cause blurry text when the text is rendered tiny
@@ -52,10 +54,6 @@ namespace MonoMSDF.Text
 		/// </summary>
 		public bool PositionByBaseline { get; set; }
 		/// <summary>
-		/// Lineheight. If 0 or less, the lineheight from the font is used.
-		/// </summary>
-		public float LineHeight { get; set; } = 0;
-		/// <summary>
 		/// WorldViewProjection Matrix to use during rendering.
 		/// </summary>
 		public Matrix WorldViewProjection { get; set; }
@@ -66,6 +64,108 @@ namespace MonoMSDF.Text
 		public void ResetLayout()
 		{
 			GlyphsLayouted = 0;
+		}
+		/// <summary>
+		/// Perform layouting with rotation for a string so that the text can be rendered.
+		/// </summary>
+		/// <param name="text">Text to draw.</param>
+		/// <param name="position">Position to draw to.</param>
+		/// <param name="depth">Z coordinate to use for glyph vertices</param>
+		/// <param name="lineHeight">Override lineheight of font.</param>
+		/// <param name="scale">How large to draw the text.</param>
+		/// <param name="color">Color to draw text.</param>
+		/// <param name="kerning">Override <c>EnableKerning</c> property.</param>
+		/// <param name="yIsDown">Override <c>PositiveYIsDown</c> property.</param>
+		/// <param name="positionByBaseline">Override <c>PositionByBaseline</c> property.</param>
+		/// <param name="rotation">Amount of rotation in radians</param>
+		/// <param name="origin">Point to rotate around, relative to position</param>
+		void LayoutText(string text, Vector2 position, float depth, float lineHeight, float scale, Color color, bool kerning, bool yIsDown, bool positionByBaseline, float rotation, Vector2 origin)
+		{
+			if (string.IsNullOrEmpty(text))
+			{
+				return;
+			}
+			if (GlyphsLayouted + text.Length > LayoutVertices.Length / 4)
+			{
+				SetLayoutCacheSize(GlyphsLayouted + text.Length);
+			}
+			int yFlip = yIsDown ? -1 : 1;
+
+			Vector2 advanceDir = new Vector2(MathF.Cos(rotation), MathF.Sin(rotation));
+			Vector2 upDir = yFlip * new Vector2(advanceDir.Y, -advanceDir.X);
+
+			Vector2 cursorStart = position;
+			// Rotation math: https://matthew-brett.github.io/teaching/rotation_2d.html
+			Vector2 rotOrigin = new Vector2(
+				advanceDir.X * -origin.X - advanceDir.Y * -origin.Y,
+				advanceDir.Y * -origin.X + advanceDir.X * -origin.Y
+			);
+			cursorStart += origin + rotOrigin;
+			if (!positionByBaseline)
+			{
+				cursorStart += upDir * scale * Font.Ascender * -1;
+			}
+			Vector2 cursor = cursorStart;
+			int currentLine = 0;
+
+			for (var i = 0; i < text.Length; i++)
+			{
+				FieldGlyph current = Font.GetGlyph(text[i]);
+
+				if (!char.IsWhiteSpace(text[i]))
+				{
+					Vector2 rotLeft = advanceDir * current.PlaneLeft * scale;
+					Vector2 rotRight = advanceDir * current.PlaneRight * scale;
+					Vector2 rotTop = upDir * current.PlaneTop * scale;
+					Vector2 rotBottom = upDir * current.PlaneBottom * scale;
+
+					LayoutVertices[GlyphsLayouted * 4 + 0].Position = new Vector3(cursor + rotRight + rotBottom, depth);
+					LayoutVertices[GlyphsLayouted * 4 + 1].Position = new Vector3(cursor + rotLeft + rotBottom, depth);
+					LayoutVertices[GlyphsLayouted * 4 + 2].Position = new Vector3(cursor + rotLeft + rotTop, depth);
+					LayoutVertices[GlyphsLayouted * 4 + 3].Position = new Vector3(cursor + rotRight + rotTop, depth);
+
+					LayoutVertices[GlyphsLayouted * 4 + 0].TextureCoordinate.X = current.AtlasRight;
+					LayoutVertices[GlyphsLayouted * 4 + 0].TextureCoordinate.Y = current.AtlasBottom;
+
+					LayoutVertices[GlyphsLayouted * 4 + 1].TextureCoordinate.X = current.AtlasLeft;
+					LayoutVertices[GlyphsLayouted * 4 + 1].TextureCoordinate.Y = current.AtlasBottom;
+
+					LayoutVertices[GlyphsLayouted * 4 + 2].TextureCoordinate.X = current.AtlasLeft;
+					LayoutVertices[GlyphsLayouted * 4 + 2].TextureCoordinate.Y = current.AtlasTop;
+
+					LayoutVertices[GlyphsLayouted * 4 + 3].TextureCoordinate.X = current.AtlasRight;
+					LayoutVertices[GlyphsLayouted * 4 + 3].TextureCoordinate.Y = current.AtlasTop;
+
+					LayoutVertices[GlyphsLayouted * 4 + 0].Color = color;
+					LayoutVertices[GlyphsLayouted * 4 + 1].Color = color;
+					LayoutVertices[GlyphsLayouted * 4 + 2].Color = color;
+					LayoutVertices[GlyphsLayouted * 4 + 3].Color = color;
+
+					LayoutIndices[GlyphsLayouted * 6 + 0] = GlyphsLayouted * 4 + 0;
+					LayoutIndices[GlyphsLayouted * 6 + 1] = GlyphsLayouted * 4 + 1;
+					LayoutIndices[GlyphsLayouted * 6 + 2] = GlyphsLayouted * 4 + 2;
+					LayoutIndices[GlyphsLayouted * 6 + 3] = GlyphsLayouted * 4 + 2;
+					LayoutIndices[GlyphsLayouted * 6 + 4] = GlyphsLayouted * 4 + 3;
+					LayoutIndices[GlyphsLayouted * 6 + 5] = GlyphsLayouted * 4 + 0;
+
+					GlyphsLayouted++;
+				}
+
+				cursor += advanceDir * current.Advance * scale;
+
+				if (kerning && i < text.Length - 1)
+				{
+					if (Font.Kerning.TryGetValue((text[i], text[i + 1]), out float kern))
+					{
+						cursor += advanceDir * kern * scale;
+					}
+				}
+				if (text[i] == '\n')
+				{
+					currentLine++;
+					cursor = cursorStart + upDir * lineHeight * scale * currentLine;
+				}
+			}
 		}
 		/// <summary>
 		/// Perform layouting for a string so that the text can be rendered.
@@ -79,9 +179,7 @@ namespace MonoMSDF.Text
 		/// <param name="kerning">Override <c>EnableKerning</c> property.</param>
 		/// <param name="yIsDown">Override <c>PositiveYIsDown</c> property.</param>
 		/// <param name="positionByBaseline">Override <c>PositionByBaseline</c> property.</param>
-		/// <param name="rotation">NOT YET IMPLEMENTED</param>
-		/// <param name="origin">NOT YET IMPLEMENTED</param>
-		void LayoutText(string text, Vector2 position, float depth, float lineHeight, float scale, Color color, bool kerning, bool yIsDown, bool positionByBaseline, float rotation, Vector2 origin)
+		void LayoutText(string text, Vector2 position, float depth, float lineHeight, float scale, Color color, bool kerning, bool yIsDown, bool positionByBaseline)
 		{
 			if (string.IsNullOrEmpty(text))
 			{
@@ -171,14 +269,14 @@ namespace MonoMSDF.Text
 			}
 		}
 		/// <summary>
-		/// Perform layouting for a string so that the text can be rendered.
+		/// Perform layouting with rotation for a string so that the text can be rendered.
 		/// </summary>
 		/// <param name="text">Text to draw.</param>
 		/// <param name="position">Position to draw to.</param>
 		/// <param name="color">Color to draw text.</param>
 		/// <param name="scale">How large to draw the text.</param>
-		/// <param name="rotation">NOT YET IMPLEMENTED</param>
-		/// <param name="origin">NOT YET IMPLEMENTED</param>
+		/// <param name="rotation">Amount of rotation in radians</param>
+		/// <param name="origin">Point to rotate around, relative to position</param>
 		/// <param name="depth">Z coordinate to use for glyph vertices</param>
 		public void LayoutText(string text, Vector2 position, Color color, float scale, float rotation, Vector2 origin, float depth = 1f)
 		{
@@ -194,14 +292,14 @@ namespace MonoMSDF.Text
 		/// <param name="depth">Z coordinate to use for glyph vertices</param>
 		public void LayoutText(string text, Vector2 position, Color color, float scale = 16, float depth = 1f)
 		{
-			LayoutText(text, position, depth, Font.LineHeight, scale, color, EnableKerning, PositiveYIsDown, PositionByBaseline, 0, Vector2.Zero);
+			LayoutText(text, position, depth, Font.LineHeight, scale, color, EnableKerning, PositiveYIsDown, PositionByBaseline);
 		}
 		/// <summary>
 		/// Render text that has been layouted since last use of ResetLayout, overriding settings from TextRenderer.
 		/// </summary>
 		/// <param name="worldViewProjection">WorldViewProjection Matrix to use during rendering.</param>
 		/// <param name="tinyText">Disables text anti-aliasing which might cause blurry text when the text is rendered tiny</param>
-		public void RenderLayoutedText(Matrix worldViewProjection, bool tinyText = false)
+		public void RenderLayoutedText(Matrix worldViewProjection, bool tinyText)
 		{
 			if (GlyphsLayouted == 0)
 			{
