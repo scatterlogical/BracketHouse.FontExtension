@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoMSDF.Text;
-using System;
 using System.Diagnostics;
 
 namespace MonoMSDF
@@ -16,11 +15,9 @@ namespace MonoMSDF
 		private GraphicsDeviceManager graphics;
 		private TextRenderer textRenderer;
 		private TextRenderer markerRenderer;
-		FieldFont markerFont;
 		Stopwatch frameWatch;
 		long frameTime = 0;
 		long frameTicks = 0;
-		long peakTicks = 0;
 		float scale = 1;
 		int scrolled = 0;
 		//Camera
@@ -36,13 +33,14 @@ namespace MonoMSDF
 			{
 				PreferredBackBufferWidth = 1280,
 				PreferredBackBufferHeight = 720,
-				//SynchronizeWithVerticalRetrace = false,
+				SynchronizeWithVerticalRetrace = false,
 				GraphicsProfile = GraphicsProfile.HiDef
 			};
 			IsFixedTimeStep = false;
 			Window.AllowUserResizing = true;
 			IsMouseVisible = true;
 			this.Content.RootDirectory = "Content";
+
 			graphics.PreparingDeviceSettings += (sender, e) =>
 			{
 				float w = e.GraphicsDeviceInformation.PresentationParameters.BackBufferWidth;
@@ -87,7 +85,7 @@ namespace MonoMSDF
 		{
 			var effect = this.Content.Load<Effect>("FieldFontEffect");
 			var font = this.Content.Load<FieldFont>("segoe");
-			markerFont = this.Content.Load<FieldFont>("marker");
+			var markerFont = this.Content.Load<FieldFont>("marker");
 
 			this.textRenderer = new TextRenderer(effect, font, this.GraphicsDevice)
 			{
@@ -96,7 +94,7 @@ namespace MonoMSDF
 			};
 			this.markerRenderer = new TextRenderer(effect, markerFont, this.GraphicsDevice)
 			{
-				PositiveYIsDown = true,
+				PositiveYIsDown = true
 			};
 		}
 
@@ -143,7 +141,7 @@ namespace MonoMSDF
 			textRenderer.PositiveYIsDown = false;
 			textRenderer.WorldViewProjection = wvp;
 			this.textRenderer.ResetLayout();
-			this.textRenderer.LayoutText("→ñ~!435&^%$", Vector2.Zero, Color.White, 32);
+			this.textRenderer.LayoutText("→~!435&^%$", Vector2.Zero, Color.White, 32);
 			this.textRenderer.RenderLayoutedText();
 
 			world = Matrix.CreateScale(0.01f) * Matrix.CreateRotationY((float)gameTime.TotalGameTime.TotalSeconds) * Matrix.CreateRotationZ(MathHelper.PiOver4);
@@ -174,22 +172,15 @@ namespace MonoMSDF
 			this.textRenderer.LayoutText("Text without kerning: AWAY\n With You", new Vector2(0, 172), Color.Gold, 32);
 			textRenderer.EnableKerning = true;
 			this.textRenderer.LayoutText($"Hære's something. Comma: ,", new Vector2(0, 720-128), Color.Black, 32);
-			this.textRenderer.LayoutText($"Frame time: {frameTicks} ticks\nFrame time: {frameTime}ms\nPeak ticks: {peakTicks}\n{gameTime.ElapsedGameTime.TotalSeconds}", new Vector2(0, 720-300), Color.Gold, 48);
-			this.textRenderer.LayoutText($"Running for {gameTime.TotalGameTime.TotalSeconds} seconds", new Vector2(0, 720-32), Color.MediumOrchid, 32);
+			this.textRenderer.LayoutText($"Frame time: {frameTicks} ticks\nFrame time: {frameTime}ms\nThird line", new Vector2(0, 720-256), Color.Gold, 64);
+			this.textRenderer.LayoutText($"Running for {gameTime.TotalGameTime.TotalSeconds} seconds", new Vector2(0, 720-32), Color.Gold, 32);
 			this.textRenderer.RenderLayoutedText();
 
 			this.markerRenderer.ResetLayout();
-			string cursorText = $"This is the upper line\nThis is scale {scale}";
-			Vector2 ctSize = markerFont.MeasureString(cursorText) * scale * 32;
-			this.markerRenderer.LayoutText(cursorText, Mouse.GetState().Position.ToVector2() - ctSize / 2, Color.Black, scale * 32);
+			this.markerRenderer.LayoutText($"AWAY\nThis is scale {scale}", Mouse.GetState().Position.ToVector2(), Color.Black, scale * 32, -2);
 			this.markerRenderer.RenderLayoutedText();
 
 			frameTicks = frameWatch.ElapsedTicks;
-			peakTicks = Math.Max(peakTicks, frameTicks);
-			if (gameTime.TotalGameTime.TotalSeconds < 0.5)
-			{
-				peakTicks = 0;
-			}
 			frameTime = frameWatch.ElapsedMilliseconds;
 			frameWatch.Stop();
 		}

@@ -1,0 +1,13 @@
+{
+	"path":"PermanentMarker-Regular.ttf",
+	"ranges":[
+		{
+			"start":" ",
+			"end":"0xFF"
+		},
+		{
+			"start":"←",
+			"end":"↙"
+		}
+	]
+}

@@ -1,121 +1,71 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using IniParser;
+using System.Text.Json;
 using Microsoft.Xna.Framework.Content.Pipeline;
 
 namespace FontExtension
-{   
-    [ContentImporter(".ini", DisplayName = "Field Font Importer", DefaultProcessor = "FieldFontProcessor")]
-    public class FieldFontImporter : ContentImporter<FontDescription>
-    {     
-        public override FontDescription Import(string filename, ContentImporterContext context)
-        {
-            return Parse(filename);            
-        }
+{
+	[ContentImporter(".json", DisplayName = "Field Font Importer", DefaultProcessor = "FieldFontProcessor")]
+	public class FieldFontImporter : ContentImporter<FontDescription>
+	{
+		public override FontDescription Import(string filename, ContentImporterContext context)
+		{
+			return Parse(filename);
+		}
 
-        private static FontDescription Parse(string filename)
-        {            
-            var parser = new FileIniDataParser();
-            var data = parser.ReadFile(filename);
+		private static FontDescription Parse(string filename)
+		{
+			JsonDocument jdoc = JsonDocument.Parse(File.ReadAllText(filename));
+			string path = jdoc.RootElement.GetProperty("path").GetString();
+			var rs = jdoc.RootElement.GetProperty("ranges");
+			char[] characters = ParseRanges(rs);
+			return new FontDescription(path, characters);
+		}
 
-            var fontSection = data.Sections["font"];
-            var path = fontSection["path"];
+		private static char[] ParseRanges(JsonElement ranges)
+		{
+			var characters = new HashSet<char>();
+			foreach (var item in ranges.EnumerateArray())
+			{
+				char startChar = CharFromJsonElement(item.GetProperty("start"));
+				char endChar = CharFromJsonElement(item.GetProperty("end"));
+				if (endChar < startChar)
+				{
+					throw new Exception($"end character {endChar} was lower value than start character {startChar}");
+				}
+				for (int i = startChar; i <= endChar; i++)
+				{
+					characters.Add((char)i);
+				}
+			}
+			return characters.ToArray();
+		}
 
-            var characterSection = data.Sections["characters"];            
-
-
-            var characters = ParseRanges(characterSection["ranges"]);
-
-            return new FontDescription(path, characters);
-        }
-
-
-        private static char[] ParseRanges(string ranges)
-        {
-            var tuples = ParseTuples(ranges);
-
-            var characters = new HashSet<char>();
-            foreach (var tuple in tuples)
-            {
-                // Every tuple should consist of two characters seperated by a comma
-                var parts = tuple.Split(',');
-                if (parts.Length != 2)
-                {
-                    throw new Exception($"Unexpected number of tuple elements in tuple: {tuple}");
-                }
-                // Convert hex numbers to chars
-                for (int i = 0; i < parts.Length; i++)
-                {
-                    if (parts[i].Length > 1 && parts[i].Substring(0, 2) == "0x")
-                    {
-                        try
-                        {
-                            parts[i] = ((char)Convert.ToInt32(parts[i], 16)).ToString();
-                        }
-                        catch (Exception)
-                        {
-                            throw new Exception($"String not recognized as hex number: {parts[i]}");
-                        }
-                    }
-                }
-                if (parts[0].Length != 1 || parts[1].Length != 1)
-                {
-                    throw new Exception($"A tuple can only contain two characters seperated by a comma: {tuple}");
-                }
-
-                // Compute the entire character range from the two extremes (inclusive)
-                var start = parts[0][0];
-                var end = parts[1][0];
-                
-                for (int i = start; i <= end; i++)
-                {
-                    characters.Add((char) i);
-                }
-
-            }
-
-            return characters.ToArray();
-        }
-
-        /// <summary>
-        /// Parses tuples, and returns an enumerable with the contents of each tuple (so without the braces)
-        /// </summary>        
-        private static IEnumerable<string> ParseTuples(string ranges)
-        {
-            var tuples = new List<string>();
-
-            // -1 signals the we have not seen the opening brace of the tuple yet
-            var start = -1;
-            for (var i = 0; i < ranges.Length; i++)
-            {
-                var c = ranges[i];
-                if (start > -1)
-                {                    
-                    if (c == ')')
-                    {
-                        var length = i - start - 1;
-                        if (length < 1)
-                        {
-                            throw new Exception($"Empty tuple at position {start}");
-                        }
-                        tuples.Add(ranges.Substring(start + 1, length));
-                        start = -1;
-                    }                    
-                    else  if (c == '(')
-                    {
-                        throw new Exception(
-                            $"Unexpected character '(', tuple was already openened at position {start}");
-                    }                          
-                }
-                else if (c == '(')
-                {
-                    start = i;
-                }
-            }
-
-            return tuples;
-        }
-    }
+		private static char CharFromJsonElement(JsonElement el)
+		{
+			if (el.ValueKind == JsonValueKind.Number && el.TryGetInt32(out int startInt))
+			{
+				return (char)startInt;
+			}
+			else
+			{
+				string stringValue = el.GetString();
+				if (stringValue.Length == 1)
+				{
+					return stringValue[0];
+				}
+				else if (stringValue.StartsWith("0x"))
+				{
+					return (char)Convert.ToInt32(stringValue, 16);
+				}
+				else
+				{
+					throw new Exception($"\"{stringValue}\" not recognized as integer, hex number or single character.");
+				}
+			}
+		}
+	}
 
 }
