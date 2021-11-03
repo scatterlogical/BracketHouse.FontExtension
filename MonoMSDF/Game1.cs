@@ -15,6 +15,7 @@ namespace MonoMSDF
 		private GraphicsDeviceManager graphics;
 		private TextRenderer textRenderer;
 		private TextRenderer markerRenderer;
+		FieldFont markerFont;
 		Stopwatch frameWatch;
 		long frameTime = 0;
 		long frameTicks = 0;
@@ -85,7 +86,7 @@ namespace MonoMSDF
 		{
 			var effect = this.Content.Load<Effect>("FieldFontEffect");
 			var font = this.Content.Load<FieldFont>("segoe");
-			var markerFont = this.Content.Load<FieldFont>("marker");
+			markerFont = this.Content.Load<FieldFont>("marker");
 
 			this.textRenderer = new TextRenderer(effect, font, this.GraphicsDevice)
 			{
@@ -120,6 +121,7 @@ namespace MonoMSDF
 		protected override void Draw(GameTime gameTime)
 		{
 			frameWatch.Restart();
+			float totalTime = (float)gameTime.TotalGameTime.TotalSeconds;
 			this.GraphicsDevice.Clear(Color.CornflowerBlue);
 
 			this.GraphicsDevice.BlendState = BlendState.AlphaBlend;
@@ -144,7 +146,7 @@ namespace MonoMSDF
 			this.textRenderer.LayoutText("→~!435&^%$", Vector2.Zero, Color.White, 32);
 			this.textRenderer.RenderLayoutedText();
 
-			world = Matrix.CreateScale(0.01f) * Matrix.CreateRotationY((float)gameTime.TotalGameTime.TotalSeconds) * Matrix.CreateRotationZ(MathHelper.PiOver4);
+			world = Matrix.CreateScale(0.01f) * Matrix.CreateRotationY(totalTime) * Matrix.CreateRotationZ(MathHelper.PiOver4);
 			view = Matrix.CreateLookAt(Vector3.Backward, Vector3.Forward, Vector3.Up);
 			projection = Matrix.CreatePerspectiveFieldOfView(
 				MathHelper.PiOver2,
@@ -177,7 +179,9 @@ namespace MonoMSDF
 			this.textRenderer.RenderLayoutedText();
 
 			this.markerRenderer.ResetLayout();
-			this.markerRenderer.LayoutText($"AWAY\nThis is scale {scale}", Mouse.GetState().Position.ToVector2(), Color.Black, scale * 32, -2);
+			string cursorText = $"AWAY\nThis is scale {scale}";
+			Vector2 ctMeasure = markerFont.MeasureString(cursorText) * scale * 32;
+			this.markerRenderer.LayoutText(cursorText, Mouse.GetState().Position.ToVector2() - ctMeasure / 2, Color.Black, scale * 32, totalTime, ctMeasure / 2);
 			this.markerRenderer.RenderLayoutedText();
 
 			frameTicks = frameWatch.ElapsedTicks;
