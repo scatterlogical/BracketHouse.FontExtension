@@ -18,9 +18,17 @@
 /importer:FieldFontImporter
 /processor:FieldFontProcessor
 /processorParam:ExternalPath=msdf-atlas-gen.exe
-/processorParam:Resolution=64
-/processorParam:Range=2
+/processorParam:Resolution=32
+/processorParam:Range=4
 /build:arial.json
+
+#begin segoe.json
+/importer:FieldFontImporter
+/processor:FieldFontProcessor
+/processorParam:ExternalPath=msdf-atlas-gen.exe
+/processorParam:Resolution=32
+/processorParam:Range=4
+/build:segoe.json
 
 #begin FieldFontEffect.fx
 /importer:EffectImporter
