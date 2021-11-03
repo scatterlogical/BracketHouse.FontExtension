@@ -6,7 +6,6 @@
 
 matrix WorldViewProjection;
 float2 TextureSize;
-float4 ForegroundColor;
 float PxRange;
 
 texture GlyphTexture;
@@ -23,12 +22,14 @@ sampler glyphSampler = sampler_state
 struct VertexShaderInput
 {
 	float4 Position : POSITION0;
+	float4 Color : COLOR0;
 	float2 TexCoord : TEXCOORD0;
 };
 
 struct VertexShaderOutput
 {
 	float4 Position : POSITION0;
+	float4 Color : COLOR0;
 	float2 TexCoord : TEXCOORD0;
 };
 
@@ -36,6 +37,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 {
 	VertexShaderOutput output = (VertexShaderOutput)0;
 	output.Position = mul(input.Position, WorldViewProjection);	
+	output.Color = input.Color;
 	output.TexCoord = input.TexCoord;
 
 	return output;
@@ -83,8 +85,8 @@ float4 MainPS(VertexShaderOutput input) : COLOR
 	// Apply pre-multiplied alpha with gamma correction
 
 	float4 color;
-	color.a = pow(abs(ForegroundColor.a * opacity), 1.0f / 2.2f);
-	color.rgb = ForegroundColor.rgb * color.a;
+	color.a = pow(abs(input.Color.a * opacity), 1.0f / 2.2f);
+	color.rgb = input.Color.rgb * color.a;
 
 	return color;
 }
@@ -98,7 +100,7 @@ float4 AltPS(VertexShaderOutput input) : COLOR
 	sigDist = sigDist * dot(msdfUnit, 0.5f / fwidth(input.TexCoord));
 
 	float opacity = clamp(sigDist + 0.5f, 0.0f, 1.0f);
-	return ForegroundColor * opacity;
+	return input.Color * opacity;
 }
 
 technique SmallText

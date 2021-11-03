@@ -2,7 +2,6 @@
 
 namespace MonoMSDF
 {
-#if WINDOWS || LINUX
     /// <summary>
     /// The main class.
     /// </summary>
@@ -18,5 +17,4 @@ namespace MonoMSDF
                 game.Run();
         }
     }
-#endif
 }

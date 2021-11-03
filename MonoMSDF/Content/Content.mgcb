@@ -10,21 +10,37 @@
 
 #-------------------------------- References --------------------------------#
 
-/reference:..\..\FontExtension\bin\Debug\FontExtension.dll
+/reference:..\..\FontExtension\bin\Debug\netcoreapp3.1\FontExtension.dll
 
 #---------------------------------- Content ---------------------------------#
 
-#begin arial.ini
+#begin arial.json
 /importer:FieldFontImporter
 /processor:FieldFontProcessor
-/processorParam:ExternalPath=msdfgen.exe
+/processorParam:ExternalPath=msdf-atlas-gen.exe
 /processorParam:Resolution=64
-/processorParam:Range=4
-/build:arial.ini
+/processorParam:Range=2
+/build:arial.json
 
 #begin FieldFontEffect.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /build:FieldFontEffect.fx
+
+#begin marker.json
+/importer:FieldFontImporter
+/processor:FieldFontProcessor
+/processorParam:ExternalPath=msdf-atlas-gen.exe
+/processorParam:Resolution=32
+/processorParam:Range=4
+/build:marker.json
+
+#begin renogare.json
+/importer:FieldFontImporter
+/processor:FieldFontProcessor
+/processorParam:ExternalPath=msdf-atlas-gen.exe
+/processorParam:Resolution=32
+/processorParam:Range=4
+/build:renogare.json
 
