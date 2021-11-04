@@ -38,25 +38,42 @@ namespace MonoMSDF.Text
 			this.PositionByBaseline = false;
 		}
 		/// <summary>
-		/// Use kerning when layouting text.
+		/// Layouting setting. Use kerning when layouting text.
 		/// </summary>
 		public bool EnableKerning { get; set; }
 		/// <summary>
-		/// Disables text anti-aliasing which might cause blurry text when the text is rendered tiny
+		/// Rendering setting. Disables text anti-aliasing which might cause blurry text when the text is rendered tiny
 		/// </summary>
 		public bool OptimizeForTinyText { get; set; }
 		/// <summary>
-		/// Flip the Y axis, so that positive Y is down. It is up to you to provide a wvp matrix where that makes sense.
+		/// Layouting setting. Flip the Y axis, so that positive Y is down. It is up to you to provide a wvp matrix where that makes sense.
 		/// </summary>
 		public bool PositiveYIsDown { get; set; }
 		/// <summary>
-		/// Position text by the baseline of the first line of text, instead of by the top.
+		/// Layouting setting. Position text by the baseline of the first line of text, instead of by the top.
 		/// </summary>
 		public bool PositionByBaseline { get; set; }
 		/// <summary>
 		/// WorldViewProjection Matrix to use during rendering.
 		/// </summary>
 		public Matrix WorldViewProjection { get; set; }
+
+		/// <summary>
+		/// Create a matrix and set <c>WorldViewProjection</c> to it.
+		/// </summary>
+		/// <param name="width"></param>
+		/// <param name="height"></param>
+		public void SetOrtographicProjection(int width, int height)
+		{
+			PositiveYIsDown = true;
+			Vector3 camTarget = new Vector3(0, 0, 100f);
+			Vector3 camPosition = new Vector3(0, 0, 0f);
+			Matrix projectionMatrix = Matrix.CreateOrthographicOffCenter(0, width, -height, 0, 0, 200);
+			Matrix viewMatrix = Matrix.CreateLookAt(camPosition, camTarget, Vector3.Up);
+			Matrix worldMatrix = Matrix.CreateWorld(camTarget, Vector3.Forward, Vector3.Down);
+
+			WorldViewProjection = worldMatrix * viewMatrix * projectionMatrix;
+		}
 
 		/// <summary>
 		/// Start over with layouting.

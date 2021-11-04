@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoMSDF.Text;
+using System;
 using System.Diagnostics;
 
 namespace MonoMSDF
@@ -21,12 +22,6 @@ namespace MonoMSDF
 		long frameTicks = 0;
 		float scale = 1;
 		int scrolled = 0;
-		//Camera
-		Vector3 camTarget;
-		Vector3 camPosition;
-		Matrix projectionMatrix;
-		Matrix viewMatrix;
-		Matrix worldMatrix;
 
 		public Game1()
 		{
@@ -41,51 +36,18 @@ namespace MonoMSDF
 			Window.AllowUserResizing = true;
 			IsMouseVisible = true;
 			this.Content.RootDirectory = "Content";
-
-			graphics.PreparingDeviceSettings += (sender, e) =>
-			{
-				float w = e.GraphicsDeviceInformation.PresentationParameters.BackBufferWidth;
-				float h = e.GraphicsDeviceInformation.PresentationParameters.BackBufferHeight;
-				float ratio = w / h;
-				const float TARGETW = 1280;
-				const float TARGETH = 720;
-				const float TARGETRATIO = TARGETW / TARGETH;
-				if (ratio < TARGETRATIO)
-				{
-					//taller
-					float mh = TARGETW / ratio;
-					float hAdjust = (mh - TARGETH) / 2;
-					projectionMatrix = Matrix.CreateOrthographicOffCenter(0, TARGETW, -TARGETH - hAdjust, hAdjust, -200, 200);
-				}
-				else if (ratio > TARGETRATIO)
-				{
-					//wider
-					float mw = TARGETH * ratio;
-					float wAdjust = (mw - TARGETW) / 2;
-					projectionMatrix = Matrix.CreateOrthographicOffCenter(-wAdjust, TARGETW + wAdjust, -TARGETH, 0, -200, 200);
-				}
-				else
-				{
-					projectionMatrix = Matrix.CreateOrthographicOffCenter(0, TARGETW, -TARGETH, 0, -200, 200);
-				}
-			};
 		}
 
 		protected override void Initialize()
 		{
 			base.Initialize();
-			camTarget = new Vector3(0, 0, 0f);
-			camPosition = new Vector3(0, 0, -100f);
-			//projectionMatrix = Matrix.CreateOrthographicOffCenter(0, 1280, -720, 0, -200, 200);
-			viewMatrix = Matrix.CreateLookAt(camPosition, camTarget, Vector3.Up);
-			worldMatrix = Matrix.CreateWorld(camTarget, Vector3.Forward, Vector3.Down);
 			frameWatch = new Stopwatch();
 		}
 
 		protected override void LoadContent()
 		{
 			var effect = this.Content.Load<Effect>("FieldFontEffect");
-			var font = this.Content.Load<FieldFont>("consola");
+			var font = this.Content.Load<FieldFont>("arial");
 			segoescriptFont = this.Content.Load<FieldFont>("segoescript");
 
 			this.textRenderer = new TextRenderer(effect, font, this.GraphicsDevice)
@@ -96,6 +58,15 @@ namespace MonoMSDF
 			this.segoescriptRenderer = new TextRenderer(effect, segoescriptFont, this.GraphicsDevice)
 			{
 				PositiveYIsDown = true
+			};
+			textRenderer.SetOrtographicProjection(1280, 720);
+			segoescriptRenderer.SetOrtographicProjection(1280, 720);
+			graphics.PreparingDeviceSettings += (sender, e) =>
+			{
+				int w = e.GraphicsDeviceInformation.PresentationParameters.BackBufferWidth;
+				int h = e.GraphicsDeviceInformation.PresentationParameters.BackBufferHeight;
+				textRenderer.SetOrtographicProjection(w, h);
+				segoescriptRenderer.SetOrtographicProjection(w, h);
 			};
 		}
 
@@ -141,10 +112,10 @@ namespace MonoMSDF
 
 			var wvp = world * view * projection;
 			textRenderer.PositiveYIsDown = false;
-			textRenderer.WorldViewProjection = wvp;
+			//textRenderer.WorldViewProjection = wvp;
 			this.textRenderer.ResetLayout();
-			this.textRenderer.LayoutText("→~!435&^%$", Vector2.Zero, Color.White, 32);
-			this.textRenderer.RenderLayoutedText();
+			this.textRenderer.LayoutText("→~!435&^%$", Vector2.Zero, Color.White, 32, MathF.Sin(totalTime) * 10);
+			this.textRenderer.RenderLayoutedText(wvp);
 
 			world = Matrix.CreateScale(0.01f) * Matrix.CreateRotationY(totalTime) * Matrix.CreateRotationZ(MathHelper.PiOver4);
 			view = Matrix.CreateLookAt(Vector3.Backward, Vector3.Forward, Vector3.Up);
@@ -156,14 +127,10 @@ namespace MonoMSDF
 
 			wvp = world * view * projection;
 			this.textRenderer.ResetLayout();
-			this.textRenderer.LayoutText("          To Infinity And Beyond!", Vector2.Zero, Color.White, 32);
+			this.textRenderer.LayoutText("To Infinity And Beyond!", Vector2.Zero, Color.Pink, 32, MathF.Sin(totalTime*6) * 100);
 			this.textRenderer.RenderLayoutedText(wvp);
-			
-			Matrix ortowvp = worldMatrix * viewMatrix * projectionMatrix;
 
 			textRenderer.PositiveYIsDown = true;
-			textRenderer.WorldViewProjection = ortowvp;
-			segoescriptRenderer.WorldViewProjection = ortowvp;
 			this.textRenderer.ResetLayout();
 			this.textRenderer.LayoutText("ORTOGRAPHIC!", new Vector2(0, 0), Color.Yellow, 32);
 			this.textRenderer.LayoutText("Text at 2x scale.", new Vector2(0, 32), Color.Red, 64f);
