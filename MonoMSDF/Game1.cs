@@ -14,8 +14,8 @@ namespace MonoMSDF
 	{
 		private GraphicsDeviceManager graphics;
 		private TextRenderer textRenderer;
-		private TextRenderer markerRenderer;
-		FieldFont markerFont;
+		private TextRenderer segoescriptRenderer;
+		FieldFont segoescriptFont;
 		Stopwatch frameWatch;
 		long frameTime = 0;
 		long frameTicks = 0;
@@ -85,15 +85,15 @@ namespace MonoMSDF
 		protected override void LoadContent()
 		{
 			var effect = this.Content.Load<Effect>("FieldFontEffect");
-			var font = this.Content.Load<FieldFont>("segoe");
-			markerFont = this.Content.Load<FieldFont>("marker");
+			var font = this.Content.Load<FieldFont>("consola");
+			segoescriptFont = this.Content.Load<FieldFont>("segoescript");
 
 			this.textRenderer = new TextRenderer(effect, font, this.GraphicsDevice)
 			{
 				//LineHeight = 1f,
 				//OptimizeForTinyText = true
 			};
-			this.markerRenderer = new TextRenderer(effect, markerFont, this.GraphicsDevice)
+			this.segoescriptRenderer = new TextRenderer(effect, segoescriptFont, this.GraphicsDevice)
 			{
 				PositiveYIsDown = true
 			};
@@ -163,7 +163,7 @@ namespace MonoMSDF
 
 			textRenderer.PositiveYIsDown = true;
 			textRenderer.WorldViewProjection = ortowvp;
-			markerRenderer.WorldViewProjection = ortowvp;
+			segoescriptRenderer.WorldViewProjection = ortowvp;
 			this.textRenderer.ResetLayout();
 			this.textRenderer.LayoutText("ORTOGRAPHIC!", new Vector2(0, 0), Color.Yellow, 32);
 			this.textRenderer.LayoutText("Text at 2x scale.", new Vector2(0, 32), Color.Red, 64f);
@@ -178,11 +178,11 @@ namespace MonoMSDF
 			this.textRenderer.LayoutText($"Running for {gameTime.TotalGameTime.TotalSeconds} seconds", new Vector2(0, 720-32), Color.Gold, 32);
 			this.textRenderer.RenderLayoutedText();
 
-			this.markerRenderer.ResetLayout();
+			this.segoescriptRenderer.ResetLayout();
 			string cursorText = $"AWAY\nThis is scale {scale}";
-			Vector2 ctMeasure = markerFont.MeasureString(cursorText) * scale * 32;
-			this.markerRenderer.LayoutText(cursorText, Mouse.GetState().Position.ToVector2() - ctMeasure / 2, Color.Black, scale * 32, totalTime, ctMeasure / 2);
-			this.markerRenderer.RenderLayoutedText();
+			Vector2 ctMeasure = segoescriptFont.MeasureString(cursorText) * scale * 32;
+			this.segoescriptRenderer.LayoutText(cursorText, Mouse.GetState().Position.ToVector2() - ctMeasure / 2, Color.Black, scale * 32, totalTime, ctMeasure / 2);
+			this.segoescriptRenderer.RenderLayoutedText();
 
 			frameTicks = frameWatch.ElapsedTicks;
 			frameTime = frameWatch.ElapsedMilliseconds;

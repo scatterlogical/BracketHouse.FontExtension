@@ -22,6 +22,12 @@
 /processorParam:Range=4
 /build:arial.json
 
+#begin FieldFontEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:FieldFontEffect.fx
+
 #begin segoe.json
 /importer:FieldFontImporter
 /processor:FieldFontProcessor
@@ -30,25 +36,18 @@
 /processorParam:Range=4
 /build:segoe.json
 
-#begin FieldFontEffect.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:FieldFontEffect.fx
-
-#begin marker.json
+#begin segoescript.json
 /importer:FieldFontImporter
 /processor:FieldFontProcessor
 /processorParam:ExternalPath=msdf-atlas-gen.exe
 /processorParam:Resolution=32
 /processorParam:Range=4
-/build:marker.json
+/build:segoescript.json
 
-#begin renogare.json
+#begin consola.json
 /importer:FieldFontImporter
 /processor:FieldFontProcessor
 /processorParam:ExternalPath=msdf-atlas-gen.exe
 /processorParam:Resolution=32
 /processorParam:Range=4
-/build:renogare.json
-
+/build:consola.json
