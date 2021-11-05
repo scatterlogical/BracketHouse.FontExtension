@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using FontExtension;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace MonoMSDF.Text
+namespace FontExtension
 {
 	public sealed class TextRenderer
 	{
@@ -59,7 +58,7 @@ namespace MonoMSDF.Text
 		public Matrix WorldViewProjection { get; set; }
 
 		/// <summary>
-		/// Create a matrix and set <c>WorldViewProjection</c> to it.
+		/// Create a matrix and set <c>WorldViewProjection</c> to it. Also sets <c>PositiveYIsDown = true</c>.
 		/// </summary>
 		/// <param name="width"></param>
 		/// <param name="height"></param>
