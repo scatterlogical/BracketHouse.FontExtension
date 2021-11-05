@@ -78,10 +78,7 @@ namespace FontExtension
 			{
 				throw new InvalidOperationException("Could not start msdf-atlas-gen.exe");
 			}
-			//else
-			//{
-			//	throw new Exception(process.StandardOutput.ReadToEnd());
-			//}
+			process.WaitForExit();
 			return (outputPath, jsonPath);
 		}
 	}
