@@ -1,5 +1,10 @@
-﻿#define VS_SHADERMODEL vs_5_0
+﻿#if OPENGL
+#define VS_SHADERMODEL vs_3_0
+#define PS_SHADERMODEL ps_3_0
+#else
+#define VS_SHADERMODEL vs_5_0
 #define PS_SHADERMODEL ps_5_0
+#endif
 
 // Mix of the enhanced shader from https://discourse.libcinder.org/t/cinder-sdftext-initial-release-wip/171/13 and the original msdf shader
 
