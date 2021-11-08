@@ -12,7 +12,7 @@ namespace FontExtension
 {
 
 	[ContentProcessor(DisplayName = "Field Font Processor")]
-	public class FieldFontProcessor : ContentProcessor<FontDescription, FieldFont>
+	internal class FieldFontProcessor : ContentProcessor<FontDescription, FieldFont>
 	{
 		[DisplayName("msdf-atlas-gen path")]
 		[Description("Path to the msdf-atlas-gen binary used to generate the multi-spectrum signed distance field")]

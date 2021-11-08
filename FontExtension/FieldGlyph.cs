@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace FontExtension
 {
-	public class FieldGlyph
+	internal class FieldGlyph
 	{
 		[ContentSerializer] private readonly char CharacterBackend;
 		[ContentSerializer] private readonly float AdvanceBackend;

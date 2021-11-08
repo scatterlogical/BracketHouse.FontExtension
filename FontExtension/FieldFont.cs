@@ -8,6 +8,9 @@ using Microsoft.Xna.Framework.Content;
 
 namespace FontExtension
 {
+    /// <summary>
+    /// A font for use with TextRenderer.
+    /// </summary>
     public class FieldFont
     {
         [ContentSerializer] private readonly Dictionary<char, FieldGlyph> Glyphs;
@@ -19,12 +22,12 @@ namespace FontExtension
         [ContentSerializer] private readonly Dictionary<(char, char), float> KerningBackend;
         [ContentSerializer] private readonly byte[] BitmapBackend;
 
-        public FieldFont()
+        internal FieldFont()
 		{
 
 		}
 
-        public FieldFont(string name, IEnumerable<FieldGlyph> glyphs, Dictionary<(char, char), float> kerning, float pxRange, float lineHeight, float ascender, float descender, byte[] bitmap)
+        internal FieldFont(string name, IEnumerable<FieldGlyph> glyphs, Dictionary<(char, char), float> kerning, float pxRange, float lineHeight, float ascender, float descender, byte[] bitmap)
         {
             this.NameBackend = name;
             this.PxRangeBackend = pxRange;
@@ -46,7 +49,7 @@ namespace FontExtension
         /// <param name="jsonFile">Filename for json from msdf-atlast-gen</param>
         /// <param name="bitmap">A byte array of bitmap data</param>
         /// <returns>FieldFont</returns>
-        public static FieldFont FromJsonAndBitmapBytes(string jsonFile, byte[] bitmap)
+        internal static FieldFont FromJsonAndBitmapBytes(string jsonFile, byte[] bitmap)
 		{
             string name = Path.GetFileNameWithoutExtension(jsonFile);
             var jdoc = JsonDocument.Parse(File.ReadAllText(jsonFile));
@@ -103,36 +106,36 @@ namespace FontExtension
         /// Name of the font
         /// </summary>
         public string Name => this.NameBackend;
-        
+
         /// <summary>
         /// Distance field effect range in pixels
         /// </summary>
-        public float PxRange => this.PxRangeBackend;
+        internal float PxRange => this.PxRangeBackend;
 
         /// <summary>
         /// Kerning pairs available in this font
         /// </summary>
-        public Dictionary<(char, char), float> Kerning => this.KerningBackend;
+        internal Dictionary<(char, char), float> Kerning => this.KerningBackend;
 
         /// <summary>
         /// Lineheight for this font
         /// </summary>
-        public float LineHeight => this.LineHeightBackend;
+        internal float LineHeight => this.LineHeightBackend;
 
         /// <summary>
         /// Ascender for this font
         /// </summary>
-        public float Ascender => this.AscenderBackend;
-        
+        internal float Ascender => this.AscenderBackend;
+
         /// <summary>
         /// Descender for this font
         /// </summary>
-        public float Descender => this.DescenderBackend;
+        internal float Descender => this.DescenderBackend;
 
         /// <summary>
         /// Distance field atlas for this font
         /// </summary>
-        public byte[] Bitmap => this.BitmapBackend; 
+        internal byte[] Bitmap => this.BitmapBackend; 
 
         /// <summary>
         /// Characters supported by this font
@@ -143,7 +146,7 @@ namespace FontExtension
         /// <summary>
         /// Returns the glyph for the given character, or throws an exception when the glyph is not supported by this font
         /// </summary>        
-        public FieldGlyph GetGlyph(char c)
+        internal FieldGlyph GetGlyph(char c)
         {
             if (this.Glyphs.TryGetValue(c, out FieldGlyph glyph))
             {

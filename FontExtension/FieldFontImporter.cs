@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Content.Pipeline;
 namespace FontExtension
 {
 	[ContentImporter(".json", DisplayName = "Field Font Importer", DefaultProcessor = "FieldFontProcessor")]
-	public class FieldFontImporter : ContentImporter<FontDescription>
+	internal class FieldFontImporter : ContentImporter<FontDescription>
 	{
 		public override FontDescription Import(string filename, ContentImporterContext context)
 		{
