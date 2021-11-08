@@ -11,13 +11,15 @@ namespace FontExtension
 	{
 		private const string LargeTextTechnique = "LargeText";
 		private const string SmallTextTechnique = "SmallText";
+		private const string LargeStrokeTechnique = "StrokeText";
+		private const string SmallStrokeTechnique = "SmallStroke";
 
 		private readonly Effect Effect;
 		private readonly FieldFont Font;
 		private readonly Texture2D AtlasTexture;
 		private readonly GraphicsDevice Device;
 
-		private VertexPositionColorTexture[] LayoutVertices = new VertexPositionColorTexture[100 * 4];
+		private FontVertex[] LayoutVertices = new FontVertex[100 * 4];
 		private int[] LayoutIndices = new int[100 * 6];
 		private int GlyphsLayouted = 0;
 
@@ -90,12 +92,13 @@ namespace FontExtension
 		/// <param name="lineHeight">Override lineheight of font.</param>
 		/// <param name="scale">How large to draw the text.</param>
 		/// <param name="color">Color to draw text.</param>
+		/// <param name="strokeColor">Color to draw text outlines.</param>
 		/// <param name="kerning">Override <c>EnableKerning</c> property.</param>
 		/// <param name="yIsDown">Override <c>PositiveYIsDown</c> property.</param>
 		/// <param name="positionByBaseline">Override <c>PositionByBaseline</c> property.</param>
 		/// <param name="rotation">Amount of rotation in radians</param>
 		/// <param name="origin">Point to rotate around, relative to position</param>
-		void LayoutText(string text, Vector2 position, float depth, float lineHeight, float scale, Color color, bool kerning, bool yIsDown, bool positionByBaseline, float rotation, Vector2 origin)
+		void LayoutText(string text, Vector2 position, float depth, float lineHeight, float scale, Color color, Color strokeColor, bool kerning, bool yIsDown, bool positionByBaseline, float rotation, Vector2 origin)
 		{
 			if (string.IsNullOrEmpty(text))
 			{
@@ -157,6 +160,11 @@ namespace FontExtension
 					LayoutVertices[GlyphsLayouted * 4 + 2].Color = color;
 					LayoutVertices[GlyphsLayouted * 4 + 3].Color = color;
 
+					LayoutVertices[GlyphsLayouted * 4 + 0].StrokeColor = strokeColor;
+					LayoutVertices[GlyphsLayouted * 4 + 1].StrokeColor = strokeColor;
+					LayoutVertices[GlyphsLayouted * 4 + 2].StrokeColor = strokeColor;
+					LayoutVertices[GlyphsLayouted * 4 + 3].StrokeColor = strokeColor;
+
 					LayoutIndices[GlyphsLayouted * 6 + 0] = GlyphsLayouted * 4 + 0;
 					LayoutIndices[GlyphsLayouted * 6 + 1] = GlyphsLayouted * 4 + 1;
 					LayoutIndices[GlyphsLayouted * 6 + 2] = GlyphsLayouted * 4 + 2;
@@ -192,10 +200,11 @@ namespace FontExtension
 		/// <param name="lineHeight">Override lineheight of font.</param>
 		/// <param name="scale">How large to draw the text.</param>
 		/// <param name="color">Color to draw text.</param>
+		/// <param name="strokeColor">Color to draw text outlines.</param>
 		/// <param name="kerning">Override <c>EnableKerning</c> property.</param>
 		/// <param name="yIsDown">Override <c>PositiveYIsDown</c> property.</param>
 		/// <param name="positionByBaseline">Override <c>PositionByBaseline</c> property.</param>
-		void LayoutText(string text, Vector2 position, float depth, float lineHeight, float scale, Color color, bool kerning, bool yIsDown, bool positionByBaseline)
+		void LayoutText(string text, Vector2 position, float depth, float lineHeight, float scale, Color color, Color strokeColor, bool kerning, bool yIsDown, bool positionByBaseline)
 		{
 			if (string.IsNullOrEmpty(text))
 			{
@@ -258,6 +267,11 @@ namespace FontExtension
 					LayoutVertices[GlyphsLayouted * 4 + 2].Color = color;
 					LayoutVertices[GlyphsLayouted * 4 + 3].Color = color;
 
+					LayoutVertices[GlyphsLayouted * 4 + 0].StrokeColor = strokeColor;
+					LayoutVertices[GlyphsLayouted * 4 + 1].StrokeColor = strokeColor;
+					LayoutVertices[GlyphsLayouted * 4 + 2].StrokeColor = strokeColor;
+					LayoutVertices[GlyphsLayouted * 4 + 3].StrokeColor = strokeColor;
+
 					LayoutIndices[GlyphsLayouted * 6 + 0] = GlyphsLayouted * 4 + 0;
 					LayoutIndices[GlyphsLayouted * 6 + 1] = GlyphsLayouted * 4 + 1;
 					LayoutIndices[GlyphsLayouted * 6 + 2] = GlyphsLayouted * 4 + 2;
@@ -296,7 +310,22 @@ namespace FontExtension
 		/// <param name="depth">Z coordinate to use for glyph vertices</param>
 		public void LayoutText(string text, Vector2 position, Color color, float scale, float rotation, Vector2 origin, float depth = 1f)
 		{
-			LayoutText(text, position, depth, Font.LineHeight, scale, color, EnableKerning, PositiveYIsDown, PositionByBaseline, rotation, origin);
+			LayoutText(text, position, depth, Font.LineHeight, scale, color, Color.Transparent, EnableKerning, PositiveYIsDown, PositionByBaseline, rotation, origin);
+		}
+		/// <summary>
+		/// Perform layouting with rotation for a string so that the text can be rendered.
+		/// </summary>
+		/// <param name="text">Text to draw.</param>
+		/// <param name="position">Position to draw to.</param>
+		/// <param name="color">Color to draw text.</param>
+		/// <param name="strokeColor">Color to draw text outlines.</param>
+		/// <param name="scale">How large to draw the text.</param>
+		/// <param name="rotation">Amount of rotation in radians</param>
+		/// <param name="origin">Point to rotate around, relative to position</param>
+		/// <param name="depth">Z coordinate to use for glyph vertices</param>
+		public void LayoutText(string text, Vector2 position, Color color, Color strokeColor, float scale, float rotation, Vector2 origin, float depth = 1f)
+		{
+			LayoutText(text, position, depth, Font.LineHeight, scale, color, strokeColor, EnableKerning, PositiveYIsDown, PositionByBaseline, rotation, origin);
 		}
 		/// <summary>
 		/// Perform layouting for a string so that the text can be rendered.
@@ -308,7 +337,20 @@ namespace FontExtension
 		/// <param name="depth">Z coordinate to use for glyph vertices</param>
 		public void LayoutText(string text, Vector2 position, Color color, float scale = 16, float depth = 1f)
 		{
-			LayoutText(text, position, depth, Font.LineHeight, scale, color, EnableKerning, PositiveYIsDown, PositionByBaseline);
+			LayoutText(text, position, depth, Font.LineHeight, scale, color, Color.Transparent, EnableKerning, PositiveYIsDown, PositionByBaseline);
+		}
+		/// <summary>
+		/// Perform layouting for a string so that the text can be rendered.
+		/// </summary>
+		/// <param name="text">Text to draw.</param>
+		/// <param name="position">Position to draw to.</param>
+		/// <param name="color">Color to draw text.</param>
+		/// <param name="strokeColor">Color to draw text outlines.</param>
+		/// <param name="scale">How large to draw the text.</param>
+		/// <param name="depth">Z coordinate to use for glyph vertices</param>
+		public void LayoutText(string text, Vector2 position, Color color, Color strokeColor, float scale = 16, float depth = 1f)
+		{
+			LayoutText(text, position, depth, Font.LineHeight, scale, color, strokeColor, EnableKerning, PositiveYIsDown, PositionByBaseline);
 		}
 		/// <summary>
 		/// Render text that has been layouted since last use of ResetLayout, overriding settings from TextRenderer.
@@ -327,7 +369,6 @@ namespace FontExtension
 			this.Effect.Parameters["PxRange"].SetValue(this.Font.PxRange);
 			this.Effect.Parameters["TextureSize"].SetValue(new Vector2(textureWidth, textureHeight));
 			this.Effect.Parameters["GlyphTexture"].SetValue(AtlasTexture);
-			this.Effect.CurrentTechnique.Passes[0].Apply();
 			if (tinyText)
 			{
 				this.Effect.CurrentTechnique = this.Effect.Techniques[SmallTextTechnique];
@@ -336,6 +377,7 @@ namespace FontExtension
 			{
 				this.Effect.CurrentTechnique = this.Effect.Techniques[LargeTextTechnique];
 			}
+			this.Effect.CurrentTechnique.Passes[0].Apply();
 			Device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, LayoutVertices, 0, GlyphsLayouted * 4, LayoutIndices, 0, GlyphsLayouted * 2);
 		}
 		/// <summary>
@@ -354,12 +396,41 @@ namespace FontExtension
 			RenderLayoutedText(WorldViewProjection, OptimizeForTinyText);
 		}
 		/// <summary>
+		/// Render text that has been layouted since last use of ResetLayout, as outlines.
+		/// </summary>
+		/// <param name="worldViewProjection"></param>
+		/// <param name="tinyText"></param>
+		public void RenderStroke(Matrix worldViewProjection, bool tinyText)
+		{
+			if (GlyphsLayouted == 0)
+			{
+				return;
+			}
+			var textureWidth = AtlasTexture.Width;
+			var textureHeight = AtlasTexture.Height;
+			this.Effect.Parameters["WorldViewProjection"].SetValue(worldViewProjection);
+			this.Effect.Parameters["PxRange"].SetValue(this.Font.PxRange);
+			this.Effect.Parameters["TextureSize"].SetValue(new Vector2(textureWidth, textureHeight));
+			this.Effect.Parameters["GlyphTexture"].SetValue(AtlasTexture);
+			this.Effect.CurrentTechnique = this.Effect.Techniques[LargeStrokeTechnique];
+			this.Effect.CurrentTechnique.Passes[0].Apply();
+			Device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, LayoutVertices, 0, GlyphsLayouted * 4, LayoutIndices, 0, GlyphsLayouted * 2);
+		}
+		/// <summary>
+		/// Render outlines for layouted text.
+		/// </summary>
+		public void RenderStroke()
+		{
+			RenderStroke(WorldViewProjection, OptimizeForTinyText);
+		}
+
+		/// <summary>
 		/// Change the sizes of LayoutVertices and LayoutIndices
 		/// </summary>
 		/// <param name="newSize">New capacity of glyph layout cache, in number of glyphs.</param>
 		private void SetLayoutCacheSize(int newSize)
 		{
-			VertexPositionColorTexture[] newVerts = new VertexPositionColorTexture[newSize * 4];
+			FontVertex[] newVerts = new FontVertex[newSize * 4];
 			int[] newIndices = new int[newSize * 6];
 			int copyAmount = Math.Min(newSize, LayoutVertices.Length / 4);
 			for (int i = 0; i < copyAmount; i++)

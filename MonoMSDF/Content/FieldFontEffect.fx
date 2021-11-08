@@ -28,6 +28,7 @@ struct VertexShaderInput
 {
 	float4 Position : POSITION0;
 	float4 Color : COLOR0;
+	float4 StrokeColor : COLOR1;
 	float2 TexCoord : TEXCOORD0;
 };
 
@@ -35,6 +36,7 @@ struct VertexShaderOutput
 {
 	float4 Position : POSITION0;
 	float4 Color : COLOR0;
+	float4 StrokeColor : COLOR1;
 	float2 TexCoord : TEXCOORD0;
 };
 
@@ -43,6 +45,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 	VertexShaderOutput output = (VertexShaderOutput)0;
 	output.Position = mul(input.Position, WorldViewProjection);	
 	output.Color = input.Color;
+	output.StrokeColor = input.StrokeColor;
 	output.TexCoord = input.TexCoord;
 
 	return output;
@@ -108,6 +111,21 @@ float4 AltPS(VertexShaderOutput input) : COLOR
 	return input.Color * opacity;
 }
 
+float4 StrokePS(VertexShaderOutput input) : COLOR
+{
+	float2 msdfUnit = PxRange / TextureSize;
+	float3 samp = tex2D(glyphSampler, input.TexCoord).rgb;
+
+	float thickness = 0.250f * 0.75f;
+	float sigDist = Median(samp.r, samp.g, samp.b) - 0.25f - thickness;
+	sigDist = -(abs(sigDist) - thickness);
+	sigDist = sigDist * dot(msdfUnit, 0.5f / fwidth(input.TexCoord));
+
+	float opacity = clamp(sigDist + 0.5f, 0.0f, 1.0f);
+	//input.Color.rgb = float3(1.0f, 1.0f, 1.0f) - input.Color.rgb;
+	return input.StrokeColor * opacity;
+}
+
 technique SmallText
 {
 	pass P0
@@ -123,5 +141,14 @@ technique LargeText
 	{
 		VertexShader = compile VS_SHADERMODEL MainVS();		
 		PixelShader = compile PS_SHADERMODEL AltPS();
+	}
+};
+
+technique StrokeText
+{
+	pass P0
+	{
+		VertexShader = compile VS_SHADERMODEL MainVS();
+		PixelShader = compile PS_SHADERMODEL StrokePS();
 	}
 };
