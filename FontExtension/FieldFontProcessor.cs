@@ -40,8 +40,6 @@ namespace FontExtension
 			{
 				var (atlasBitmap, atlasJSON) = CreateAtlas(input, msdfgen, objPath);
 				var bytes = File.ReadAllBytes(atlasBitmap);
-				//FieldFont retval = ParseAtlasJSON(atlasJSON);
-				//new FieldFont(retval.Name, null, null, 0, 0, bytes);
 				return FieldFont.FromJsonAndBitmapBytes(atlasJSON, bytes);
 			}
 
@@ -59,9 +57,9 @@ namespace FontExtension
 		private (string atlasBitmap, string atlasJSON) CreateAtlas(FontDescription font, string msdfgen, string objPath)
 		{
 			var name = Path.GetFileNameWithoutExtension(font.Path);
-			var outputPath = Path.Combine(objPath, $"{name}.bmp");
+			var outputPath = Path.Combine(objPath, $"{name}-atlas.png");
 			var charsetPath = Path.Combine(objPath, $"{name}-charset.txt");
-			var jsonPath = Path.Combine(objPath, $"{name}.json");
+			var jsonPath = Path.Combine(objPath, $"{name}-layout.json");
 			string charset = new string(font.Characters);
 			charset = charset.Replace("\\", "\\\\");
 			charset = charset.Replace("\"", "\\\"");
@@ -71,7 +69,7 @@ namespace FontExtension
 			{
 				UseShellExecute = false,
 				RedirectStandardOutput = true,
-				Arguments = $"-font \"{font.Path}\" -imageout \"{outputPath}\" -charset \"{charsetPath}\" -size {this.Resolution} -pxrange {this.Range} -json \"{jsonPath}\" -yorigin top"
+				Arguments = $"-font \"{font.Path}\" -imageout \"{outputPath}\" -type mtsdf -charset \"{charsetPath}\" -size {this.Resolution} -pxrange {this.Range} -json \"{jsonPath}\" -yorigin top"
 			};
 			var process = System.Diagnostics.Process.Start(startInfo);
 			if (process == null)
