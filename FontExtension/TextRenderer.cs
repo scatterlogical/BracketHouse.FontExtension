@@ -11,8 +11,10 @@ namespace FontExtension
 	{
 		private const string LargeTextTechnique = "LargeText";
 		private const string SmallTextTechnique = "SmallText";
-		private const string LargeStrokeTechnique = "StrokeText";
+		private const string LargeStrokeTechnique = "LargeStroke";
 		private const string SmallStrokeTechnique = "SmallStroke";
+		private const string LargeStrokedTextTechnique = "LargeStrokedText";
+		private const string SmallStrokedTextTechnique = "SmallStrokedText";
 
 		private readonly Effect Effect;
 		private readonly FieldFont Font;
@@ -353,11 +355,54 @@ namespace FontExtension
 			LayoutText(text, position, depth, Font.LineHeight, scale, color, strokeColor, EnableKerning, PositiveYIsDown, PositionByBaseline);
 		}
 		/// <summary>
+		/// Render text with outline that has been layouted since last use of ResetLayout, overriding settings from TextRenderer.
+		/// </summary>
+		/// <param name="worldViewProjection">WorldViewProjection Matrix to use during rendering.</param>
+		/// <param name="tinyText">Disables text anti-aliasing which might cause blurry text when the text is rendered tiny</param>
+		public void RenderStrokedText(Matrix worldViewProjection, bool tinyText)
+		{
+			if (GlyphsLayouted == 0)
+			{
+				return;
+			}
+			var textureWidth = AtlasTexture.Width;
+			var textureHeight = AtlasTexture.Height;
+			this.Effect.Parameters["WorldViewProjection"].SetValue(worldViewProjection);
+			this.Effect.Parameters["PxRange"].SetValue(this.Font.PxRange);
+			this.Effect.Parameters["TextureSize"].SetValue(new Vector2(textureWidth, textureHeight));
+			this.Effect.Parameters["GlyphTexture"].SetValue(AtlasTexture);
+			if (tinyText)
+			{
+				this.Effect.CurrentTechnique = this.Effect.Techniques[SmallStrokedTextTechnique];
+			}
+			else
+			{
+				this.Effect.CurrentTechnique = this.Effect.Techniques[LargeStrokedTextTechnique];
+			}
+			this.Effect.CurrentTechnique.Passes[0].Apply();
+			Device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, LayoutVertices, 0, GlyphsLayouted * 4, LayoutIndices, 0, GlyphsLayouted * 2);
+		}
+		/// <summary>
+		/// Render text with outline that has been layouted since last use of ResetLayout, overriding WorldViewProjection matrix from TextRenderer.
+		/// </summary>
+		/// <param name="worldViewProjection">WorldViewProjection Matrix to use during rendering.</param>
+		public void RenderStrokedText(Matrix worldViewProjection)
+		{
+			RenderStrokedText(worldViewProjection, OptimizeForTinyText);
+		}
+		/// <summary>
+		/// Render text with outline that has been layouted since last use of ResetLayout.
+		/// </summary>
+		public void RenderStrokedText()
+		{
+			RenderStrokedText(WorldViewProjection, OptimizeForTinyText);
+		}
+		/// <summary>
 		/// Render text that has been layouted since last use of ResetLayout, overriding settings from TextRenderer.
 		/// </summary>
 		/// <param name="worldViewProjection">WorldViewProjection Matrix to use during rendering.</param>
 		/// <param name="tinyText">Disables text anti-aliasing which might cause blurry text when the text is rendered tiny</param>
-		public void RenderLayoutedText(Matrix worldViewProjection, bool tinyText)
+		public void RenderText(Matrix worldViewProjection, bool tinyText)
 		{
 			if (GlyphsLayouted == 0)
 			{
@@ -384,16 +429,16 @@ namespace FontExtension
 		/// Render text that has been layouted since last use of ResetLayout, overriding WorldViewProjection matrix from TextRenderer.
 		/// </summary>
 		/// <param name="worldViewProjection">WorldViewProjection Matrix to use during rendering.</param>
-		public void RenderLayoutedText(Matrix worldViewProjection)
+		public void RenderText(Matrix worldViewProjection)
 		{
-			RenderLayoutedText(worldViewProjection, OptimizeForTinyText);
+			RenderText(worldViewProjection, OptimizeForTinyText);
 		}
 		/// <summary>
 		/// Render text that has been layouted since last use of ResetLayout.
 		/// </summary>
-		public void RenderLayoutedText()
+		public void RenderText()
 		{
-			RenderLayoutedText(WorldViewProjection, OptimizeForTinyText);
+			RenderText(WorldViewProjection, OptimizeForTinyText);
 		}
 		/// <summary>
 		/// Render text that has been layouted since last use of ResetLayout, as outlines.
@@ -412,7 +457,14 @@ namespace FontExtension
 			this.Effect.Parameters["PxRange"].SetValue(this.Font.PxRange);
 			this.Effect.Parameters["TextureSize"].SetValue(new Vector2(textureWidth, textureHeight));
 			this.Effect.Parameters["GlyphTexture"].SetValue(AtlasTexture);
-			this.Effect.CurrentTechnique = this.Effect.Techniques[LargeStrokeTechnique];
+			if (tinyText)
+			{
+				this.Effect.CurrentTechnique = this.Effect.Techniques[SmallStrokeTechnique];
+			}
+			else
+			{
+				this.Effect.CurrentTechnique = this.Effect.Techniques[LargeStrokeTechnique];
+			}
 			this.Effect.CurrentTechnique.Passes[0].Apply();
 			Device.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, LayoutVertices, 0, GlyphsLayouted * 4, LayoutIndices, 0, GlyphsLayouted * 2);
 		}

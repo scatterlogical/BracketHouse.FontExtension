@@ -67,6 +67,9 @@ namespace MonoMSDF
 				textRenderer.SetOrtographicProjection(w, h);
 				segoescriptRenderer.SetOrtographicProjection(w, h);
 			};
+			this.GraphicsDevice.BlendState = BlendState.AlphaBlend;
+			this.GraphicsDevice.DepthStencilState = DepthStencilState.None;
+			this.GraphicsDevice.RasterizerState = RasterizerState.CullNone;
 		}
 
 		protected override void Update(GameTime gameTime)
@@ -94,10 +97,6 @@ namespace MonoMSDF
 			float totalTime = (float)gameTime.TotalGameTime.TotalSeconds;
 			this.GraphicsDevice.Clear(Color.CornflowerBlue);
 
-			this.GraphicsDevice.BlendState = BlendState.AlphaBlend;
-			this.GraphicsDevice.DepthStencilState = DepthStencilState.None;
-			this.GraphicsDevice.RasterizerState = RasterizerState.CullNone;
-
 			var viewport = this.GraphicsDevice.Viewport;
 
 			//var world = Matrix.CreateScale(0.01f) *  Matrix.CreateRotationY((float)gameTime.TotalGameTime.TotalSeconds);
@@ -114,7 +113,7 @@ namespace MonoMSDF
 			//textRenderer.WorldViewProjection = wvp;
 			this.textRenderer.ResetLayout();
 			this.textRenderer.LayoutText("→~!435&^%$", Vector2.Zero, Color.White, 32, MathF.Sin(totalTime) * 10);
-			this.textRenderer.RenderLayoutedText(wvp);
+			this.textRenderer.RenderText(wvp);
 
 			world = Matrix.CreateScale(0.01f) * Matrix.CreateRotationY(totalTime) * Matrix.CreateRotationZ(MathHelper.PiOver4);
 			view = Matrix.CreateLookAt(Vector3.Backward, Vector3.Forward, Vector3.Up);
@@ -126,31 +125,37 @@ namespace MonoMSDF
 
 			wvp = world * view * projection;
 			this.textRenderer.ResetLayout();
-			this.textRenderer.LayoutText("To Infinity And Beyond!", Vector2.Zero, Color.Pink, Color.Black, 32, MathF.Sin(totalTime*6) * 100);
-			this.textRenderer.RenderLayoutedText(wvp);
+			this.textRenderer.LayoutText("To Infinity And Beyond!", Vector2.Zero, Color.Pink, Color.Black, 32, MathF.Sin(totalTime * 6) * 100);
+			this.textRenderer.RenderText(wvp);
 
 			textRenderer.PositiveYIsDown = true;
 			this.textRenderer.ResetLayout();
-			this.textRenderer.LayoutText("ORTOGRAPHIC!", new Vector2(0, 0), Color.Yellow, Color.Black, 32);
-			this.textRenderer.LayoutText("Text at 2x scale.", new Vector2(0, 32), Color.Red, Color.DarkCyan, 64f);
-			this.textRenderer.LayoutText("Text at half scale?", new Vector2(0, 96), Color.Green, Color.Wheat, 16f);
-			this.textRenderer.LayoutText("ÑNCâarP", new Vector2(0, 112), Color.Gold, Color.Black, 32);
-			this.textRenderer.LayoutText("Text with kerning: AWAY", new Vector2(0, 144), Color.Gold, Color.Black, 32);
+			this.textRenderer.LayoutText("Look at this text!", new Vector2(0, 0), Color.Yellow, Color.Black, 32);
+			this.textRenderer.LayoutText("Text can be big.", new Vector2(0, 32), Color.Red, Color.Black, 64f);
+			this.textRenderer.LayoutText("Text can even be small.", new Vector2(0, 96), Color.White, 16f);
+			this.textRenderer.LayoutText("It's a piñata", new Vector2(0, 112), Color.Gold, Color.Black, 32);
+			this.textRenderer.LayoutText("Text with kerning:", new Vector2(0, 144), Color.Gold, Color.Black, 32);
+			this.textRenderer.LayoutText("AWAY", new Vector2(310, 144), Color.Gold, Color.Black, 32);
 			textRenderer.EnableKerning = false;
-			this.textRenderer.LayoutText("Text without kerning: AWAY\n With You", new Vector2(0, 172), Color.Transparent, Color.Black, 32*5);
+			this.textRenderer.LayoutText("Text without kerning:", new Vector2(0, 172), Color.Red, Color.Black, 32, 20);
+			this.textRenderer.LayoutText("AWAY", new Vector2(310, 172), Color.Red, Color.Black, 32, 20);
 			textRenderer.EnableKerning = true;
-			this.textRenderer.LayoutText($"Hære's something. Comma: ,", new Vector2(0, 720-128), Color.Black, Color.Gold, 32);
-			this.textRenderer.LayoutText($"Frame time: {frameTicks} ticks\nFrame time: {frameTime}ms\nThird line", new Vector2(0, 720-256), Color.Gold, Color.Black, 64);
-			this.textRenderer.LayoutText($"Running for {gameTime.TotalGameTime.TotalSeconds} seconds", new Vector2(0, 720-32), Color.Gold, Color.Black, 32);
-			this.textRenderer.RenderStroke();
-			this.textRenderer.RenderLayoutedText();
+			this.textRenderer.LayoutText($"LESS BIG\nIN BACK", new Vector2(100, 300), Color.Blue, Color.Orange, 32 * 2, 0.1f);
+			//this.textRenderer.LayoutText($"Hære's something. Comma: ,", new Vector2(0, 720-128), Color.Black, Color.Gold, 32);
+			this.textRenderer.LayoutText($"Frame time: 0{frameTicks} ticks\nFrame time: {frameTime}ms", new Vector2(0, 720-265), Color.Gold, Color.Black, 64);
+			this.textRenderer.LayoutText($"Running for {gameTime.TotalGameTime.TotalSeconds} seconds", new Vector2(0, 720-40), Color.Gold, Color.Black, 32);
+			this.textRenderer.LayoutText($"REALLY BIG\nIN FRONT", new Vector2(0, 200), Color.Transparent, Color.Gold, 32 * 5);
+			//this.textRenderer.RenderStroke();
+			//this.textRenderer.RenderText();
+			textRenderer.RenderStrokedText();
 			
 			this.segoescriptRenderer.ResetLayout();
-			string cursorText = $"AWAY\nThis is scale {scale}";
+			string cursorText = $"This is rotated.\nAnd a different font.";
 			Vector2 ctMeasure = segoescriptFont.MeasureString(cursorText) * scale * 32;
 			this.segoescriptRenderer.LayoutText(cursorText, Mouse.GetState().Position.ToVector2() - ctMeasure / 2, Color.Black, Color.White, scale * 32, totalTime, ctMeasure / 2);
 			this.segoescriptRenderer.RenderStroke();
-			this.segoescriptRenderer.RenderLayoutedText();
+			this.segoescriptRenderer.RenderText();
+			//segoescriptRenderer.RenderStrokedText();
 
 			frameTicks = frameWatch.ElapsedTicks;
 			frameTime = frameWatch.ElapsedMilliseconds;
