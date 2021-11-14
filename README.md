@@ -1,5 +1,5 @@
 # MSDF
-A signed distance field font renderer for monogame. 
+A signed distance field font renderer for monogame. It is based off [roy-t/MSDF](https://github.com/roy-t/MSDF), adding features, improving performance and reducing the number of dependencies.
 
 ![Sample](textrenderexample.png "Sample")
 
@@ -12,7 +12,6 @@ This sample includes a content pipeline project for Monogame 3.8. The content pr
 The game project contains a simple utility class and shader to draw 3D moving text.
 
 # Using this in your own project
-## Adding this to your Monogame project
 For an example and more information of how to use this in your own project, see [my other repo](https://github.com/Peewi/MonoMSDF-Example).
 
 # Parameters
