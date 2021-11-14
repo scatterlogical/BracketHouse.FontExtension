@@ -1,18 +1,31 @@
 # MSDF
-A signed distance field font sample for monogame.
+A signed distance field font renderer for monogame. 
 
-![Sample](https://raw.githubusercontent.com/roy-t/MSDF/master/gallery.PNG "Sample")
+![Sample](textrenderexample.png "Sample")
 
-This sample shows how you can integrate [msdfgen](https://github.com/Chlumsky/msdfgen) into your content pipeline to generated signed distance field fonts, and how to correctly render these fonts. Including correct kerning courtesy of my [TrueType library](https://github.com/roy-t/TrueType). 
-
-For more info visit my [blog](https://roy-t.nl).
+This project uses [msdf-atlas-gen](https://github.com/Chlumsky/msdf-atlas-gen) to generate signed distance field font atlases and renders them with a shader.
 
 ## The content pipeline project
-This sample includes a content pipeline project compatible with Monogame 3.0+. The content processor requires you set the path to the msdfgen binary. I recommend you generate it from [this fork](https://github.com/ckohnert/msdfgen) as it fixes many issues with complicated fonts. 
+This sample includes a content pipeline project for Monogame 3.8. The content processor requires you set the path to the msdf-atlas-gen binary.
 
 ## The game project
 The game project contains a simple utility class and shader to draw 3D moving text.
 
+# Using this in your own project
+## Adding this to your Monogame project
+For an example and more information of how to use this in your own project, see [my other repo](https://github.com/Peewi/MonoMSDF-Example).
+
+# Parameters
+The field font processor has two parameters that influence the generation of the font atlas.
+## Resolution
+The resolution parameter controls how large each glyph is in the font atlas. Larger resolution better preserves small details of the font. Distortions in the font might not be visible when rendered at a small size, but become visible when rendered at a larger size.
+
+This comparison shows a closeup of the letters r and n in the font Arial, rendered at a large size, using resolution 32 and 64 respectively.
+
+![Resolution comparison](fontrescomp.png "Resolution comparison")
+
+## Range
+Range determines how far the distance field extends beyond the glyphs in the font atlas. A higher range allows the rendering of smaller text with anti aliasing. Range also determines the width of the text stroke.
 
 # Why (multi-channel) signed distance fields?
 
