@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace FontExtension
+namespace BracketHouse.FontExtension
 {
-    public class FontDescription
+    internal class FontDescription
     {
-        public FontDescription(string path, params char[] characters)
+        internal FontDescription(string path, params char[] characters)
         {
             this.Path = path;            
             this.Characters = characters;
         }
 
-        public string Path { get; }        
-        public char[] Characters { get; }
+        internal string Path { get; }
+        internal char[] Characters { get; }
     }
 }

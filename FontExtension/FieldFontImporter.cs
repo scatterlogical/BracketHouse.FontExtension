@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text.Json;
 using Microsoft.Xna.Framework.Content.Pipeline;
 
-namespace FontExtension
+namespace BracketHouse.FontExtension
 {
-	[ContentImporter(".json", DisplayName = "Field Font Importer", DefaultProcessor = "FieldFontProcessor")]
+	[ContentImporter(".bhfont", DisplayName = "Field Font Importer", DefaultProcessor = "FieldFontProcessor")]
 	internal class FieldFontImporter : ContentImporter<FontDescription>
 	{
 		public override FontDescription Import(string filename, ContentImporterContext context)
