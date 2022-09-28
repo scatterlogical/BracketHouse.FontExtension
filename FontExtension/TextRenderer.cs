@@ -61,6 +61,7 @@ namespace BracketHouse.FontExtension
 			OptimizeForTinyText = false;
 			PositiveYIsDown = true;
 			PositionByBaseline = false;
+			SetLayoutCacheSize(100);
 		}
 		/// <summary>
 		/// Extract shader from assembly, load it, and delete the temp file.
@@ -379,13 +380,6 @@ namespace BracketHouse.FontExtension
 					LayoutVertices[GlyphsLayouted * 4 + 2].StrokeColor = currentStroke;
 					LayoutVertices[GlyphsLayouted * 4 + 3].StrokeColor = currentStroke;
 
-					LayoutIndices[GlyphsLayouted * 6 + 0] = GlyphsLayouted * 4 + 0;
-					LayoutIndices[GlyphsLayouted * 6 + 1] = GlyphsLayouted * 4 + 1;
-					LayoutIndices[GlyphsLayouted * 6 + 2] = GlyphsLayouted * 4 + 2;
-					LayoutIndices[GlyphsLayouted * 6 + 3] = GlyphsLayouted * 4 + 2;
-					LayoutIndices[GlyphsLayouted * 6 + 4] = GlyphsLayouted * 4 + 3;
-					LayoutIndices[GlyphsLayouted * 6 + 5] = GlyphsLayouted * 4 + 0;
-
 					GlyphsLayouted++;
 				}
 
@@ -495,13 +489,6 @@ namespace BracketHouse.FontExtension
 					LayoutVertices[GlyphsLayouted * 4 + 1].StrokeColor = strokeColor;
 					LayoutVertices[GlyphsLayouted * 4 + 2].StrokeColor = strokeColor;
 					LayoutVertices[GlyphsLayouted * 4 + 3].StrokeColor = strokeColor;
-
-					LayoutIndices[GlyphsLayouted * 6 + 0] = GlyphsLayouted * 4 + 0;
-					LayoutIndices[GlyphsLayouted * 6 + 1] = GlyphsLayouted * 4 + 1;
-					LayoutIndices[GlyphsLayouted * 6 + 2] = GlyphsLayouted * 4 + 2;
-					LayoutIndices[GlyphsLayouted * 6 + 3] = GlyphsLayouted * 4 + 2;
-					LayoutIndices[GlyphsLayouted * 6 + 4] = GlyphsLayouted * 4 + 3;
-					LayoutIndices[GlyphsLayouted * 6 + 5] = GlyphsLayouted * 4 + 0;
 
 					GlyphsLayouted++;
 				}
@@ -711,19 +698,15 @@ namespace BracketHouse.FontExtension
 		{
 			FontVertex[] newVerts = new FontVertex[newSize * 4];
 			int[] newIndices = new int[newSize * 6];
-			int copyAmount = Math.Min(newSize, LayoutVertices.Length / 4);
-			for (int i = 0; i < copyAmount; i++)
+			Array.Copy(LayoutVertices, newVerts, Math.Min(newSize * 4, LayoutVertices.Length));
+			for (int i = 0; i < newSize; i++)
 			{
-				newVerts[i * 4 + 0] = LayoutVertices[i * 4 + 0];
-				newVerts[i * 4 + 1] = LayoutVertices[i * 4 + 1];
-				newVerts[i * 4 + 2] = LayoutVertices[i * 4 + 2];
-				newVerts[i * 4 + 3] = LayoutVertices[i * 4 + 3];
-				newIndices[i * 6 + 0] = LayoutIndices[i * 6 + 0];
-				newIndices[i * 6 + 1] = LayoutIndices[i * 6 + 1];
-				newIndices[i * 6 + 2] = LayoutIndices[i * 6 + 2];
-				newIndices[i * 6 + 3] = LayoutIndices[i * 6 + 3];
-				newIndices[i * 6 + 4] = LayoutIndices[i * 6 + 4];
-				newIndices[i * 6 + 5] = LayoutIndices[i * 6 + 5];
+				newIndices[i * 6 + 0] = i * 4 + 0;
+				newIndices[i * 6 + 1] = i * 4 + 1;
+				newIndices[i * 6 + 2] = i * 4 + 2;
+				newIndices[i * 6 + 3] = i * 4 + 2;
+				newIndices[i * 6 + 4] = i * 4 + 3;
+				newIndices[i * 6 + 5] = i * 4 + 0;
 			}
 			LayoutVertices = newVerts;
 			LayoutIndices = newIndices;
