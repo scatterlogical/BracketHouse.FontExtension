@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net6.0-windows</TargetFramework>
+		<TargetFramework>net7.0</TargetFramework>
 		<ApplicationIcon />
 		<OutputType>Library</OutputType>
 		<StartupObject />
@@ -12,6 +12,9 @@
 		<PackageTags>Monogame, font, text</PackageTags>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	</PropertyGroup>
+	<PropertyGroup>
+		<MonoGamePlatform>DesktopGL</MonoGamePlatform>
 	</PropertyGroup>
 	<ItemGroup>
 	  <None Remove="FieldFontEffectDesktopGL.xnb" />
@@ -27,14 +30,9 @@
 	    <PackagePath>\</PackagePath>
 	  </None>
 	</ItemGroup>
-
 	<ItemGroup>
-		<PackageReference Include="MonoGame.Framework.Content.Pipeline" Version="3.8.1.*">
-			<PrivateAssets>All</PrivateAssets>
-		</PackageReference>
-		<PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.*">
-			<PrivateAssets>All</PrivateAssets>
-		</PackageReference>
+	  <ProjectReference Include="..\..\MonoGame\MonoGame.Framework.Content.Pipeline\MonoGame.Framework.Content.Pipeline.csproj" />
+	  <ProjectReference Include="..\..\MonoGame\MonoGame.Framework\MonoGame.Framework.DesktopGL.csproj" />
 	</ItemGroup>
 
 </Project>
