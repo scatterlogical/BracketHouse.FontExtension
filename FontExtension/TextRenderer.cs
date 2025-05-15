@@ -70,20 +70,20 @@ namespace BracketHouse.FontExtension
 		/// <returns>The field font effect, compiled for the current platform.</returns>
 		private static Effect LoadDefaultShader(ContentManager content)
 		{
-			string shaderName = "FieldFontEffectWinDX";
-			switch (PlatformInfo.GraphicsBackend)
-			{
-				case GraphicsBackend.DirectX:
-					shaderName = "FieldFontEffectWinDX";
-					break;
-				case GraphicsBackend.OpenGL:
-					shaderName = "FieldFontEffectDesktopGL";
-					break;
-				case GraphicsBackend.Vulkan:
-					break;
-				case GraphicsBackend.Metal:
-					break;
-			}
+			string shaderName = "FieldFontEffect";
+			// switch (PlatformInfo.GraphicsBackend)
+			// {
+			// 	case GraphicsBackend.DirectX:
+			// 		shaderName = "FieldFontEffectWinDX";
+			// 		break;
+			// 	case GraphicsBackend.OpenGL:
+			// 		shaderName = "FieldFontEffectDesktopGL";
+			// 		break;
+			// 	case GraphicsBackend.Vulkan:
+			// 		break;
+			// 	case GraphicsBackend.Metal:
+			// 		break;
+			// }
 			shaderName = $"BracketHouse.FontExtension.{shaderName}";
 			string tempName = $"{Path.GetTempFileName()}";
 			using (Stream shader = Assembly.GetExecutingAssembly().GetManifestResourceStream($"{shaderName}.xnb"))

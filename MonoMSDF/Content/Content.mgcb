@@ -10,7 +10,7 @@
 
 #-------------------------------- References --------------------------------#
 
-/reference:..\..\FontExtension\bin\Debug\netcoreapp3.1\BracketHouse.FontExtension.dll
+/reference:..\..\FontExtension\bin\Debug\net8.0\BracketHouse.FontExtension.dll
 
 #---------------------------------- Content ---------------------------------#
 
@@ -22,11 +22,13 @@
 /processorParam:Range=8
 /build:arial.bhfont
 
-#begin FieldFontEffect.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:FieldFontEffect.fx
+#begin consola.bhfont
+/importer:FieldFontImporter
+/processor:FieldFontProcessor
+/processorParam:ExternalPath=msdf-atlas-gen.exe
+/processorParam:Resolution=64
+/processorParam:Range=8
+/build:consola.bhfont
 
 #begin segoe.bhfont
 /importer:FieldFontImporter
@@ -44,10 +46,3 @@
 /processorParam:Range=8
 /build:segoescript.bhfont
 
-#begin consola.bhfont
-/importer:FieldFontImporter
-/processor:FieldFontProcessor
-/processorParam:ExternalPath=msdf-atlas-gen.exe
-/processorParam:Resolution=64
-/processorParam:Range=8
-/build:consola.bhfont
