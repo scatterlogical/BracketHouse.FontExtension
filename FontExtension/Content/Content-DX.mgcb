@@ -10,8 +10,6 @@
 
 #-------------------------------- References --------------------------------#
 
-/reference:BracketHouse.FontExtension.dll
-
 #---------------------------------- Content ---------------------------------#
 
 #begin FieldFontEffect.fx
