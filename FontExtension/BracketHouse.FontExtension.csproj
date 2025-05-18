@@ -13,9 +13,9 @@
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <TargetFrameworks>net8.0;net8.0-windows</TargetFrameworks>
     </PropertyGroup>
-    <PropertyGroup>
-        <MonoGamePlatform>DesktopGL</MonoGamePlatform>
-    </PropertyGroup>
+<!--    <PropertyGroup>-->
+<!--        <MonoGamePlatform>DesktopGL</MonoGamePlatform>-->
+<!--    </PropertyGroup>-->
     <ItemGroup>
         <None Include="..\README.md">
             <Pack>True</Pack>
@@ -41,7 +41,7 @@
         <EmbeddedResource Link="FieldFontEffect.xnb" Include="$(MSBuildProjectDirectory)\Content\bin\DesktopGL\content\FieldFontEffect.xnb"/>
     </ItemGroup>
 
-    <ItemGroup Condition="'$(MonoGamePlatform)' == 'WinDX'">
+    <ItemGroup Condition="'$(MonoGamePlatform)' == 'Windows'">
         <EmbeddedResource Link="FieldFontEffect.xnb" Include="$(MSBuildProjectDirectory)\Content\bin\Windows\content\FieldFontEffect.xnb"/>
     </ItemGroup>
 
