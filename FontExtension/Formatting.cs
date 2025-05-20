@@ -33,6 +33,7 @@ namespace BracketHouse.FontExtension
 			Special = 256,
 			EndFormat = 512,
 			Sprite = 1024,
+			StrokeWidth = 2048
 		}
 		/// <summary>
 		/// Delegate to use for adding fill color formatting tags
@@ -50,6 +51,14 @@ namespace BracketHouse.FontExtension
 		/// <param name="args">Array of argument strings. Note that the first element will be the name of the command.</param>
 		/// <returns>A color that will be used for the text stroke.</returns>
 		public delegate Color? StrokeDelegate(GameTime gameTime, Color baseColor, string[] args);
+		/// <summary>
+		/// Delegate to use for adding stroke color formatting tags
+		/// </summary>
+		/// <param name="gameTime">A gametime object. Useful for animated effects.</param>
+		/// <param name="baseColor">The stroke color passed to <c>TextRenderer.LayoutText</c></param>
+		/// <param name="args">Array of argument strings. Note that the first element will be the name of the command.</param>
+		/// <returns>A color that will be used for the text stroke.</returns>
+		public delegate float StrokeWidthDelegate(GameTime gameTime, string[] strings);
 		/// <summary>
 		/// Delegate for offsetting the position of text.
 		/// </summary>
@@ -117,6 +126,7 @@ namespace BracketHouse.FontExtension
 		static readonly Dictionary<string, TagType> TagNames = new Dictionary<string, TagType>();
 		static readonly Dictionary<string, FillDelegate> FillTags = new Dictionary<string, FillDelegate>();
 		static readonly Dictionary<string, StrokeDelegate> StrokeTags = new Dictionary<string, StrokeDelegate>();
+		static readonly Dictionary<string, StrokeWidthDelegate> StrokeWidthTags = new Dictionary<string, StrokeWidthDelegate>();
 		static readonly Dictionary<string, PositionDelegate> PositionTags = new Dictionary<string, PositionDelegate>();
 		static readonly Dictionary<string, LetterPositionDelegate> LetterPositionTags = new Dictionary<string, LetterPositionDelegate>();
 		static readonly Dictionary<string, ScaleDelegate> ScaleTags = new Dictionary<string, ScaleDelegate>();
@@ -133,6 +143,7 @@ namespace BracketHouse.FontExtension
 			RegisterTag("color", fillFunction: FormattingFunctions.ColorFunction);
 			RegisterTag("fill", fillFunction: FormattingFunctions.ColorFunction);
 			RegisterTag("stroke", strokeFunction: FormattingFunctions.ColorFunction);
+			RegisterTag("strokewidth", strokeWidthFunction: FormattingFunctions.ParseFloat);
 			RegisterTag("offset", positionFunction: FormattingFunctions.ParseVector2);
 			RegisterTag("scale", scaleFunction: FormattingFunctions.ParseFloat);
 			RegisterTag("lineheight", lineHeightFunction: FormattingFunctions.ParseFloat);
@@ -163,6 +174,18 @@ namespace BracketHouse.FontExtension
 		{
 			TagNames[name.ToLowerInvariant()] = TagType.StrokeColor;
 			StrokeTags[name.ToLowerInvariant()] = strokeFunction;
+		}
+
+
+		/// <summary>
+		/// Add a new text stroke width tag.
+		/// </summary>
+		/// <param name="name">Name to use for tag. Case insensitive</param>
+		/// <param name="strokeWidthFunction"></param>
+		public static void RegisterTag(string name, StrokeWidthDelegate strokeWidthFunction)
+		{
+			TagNames[name.ToLowerInvariant()] = TagType.StrokeWidth;
+			StrokeWidthTags[name.ToLowerInvariant()] = strokeWidthFunction;
 		}
 		/// <summary>
 		/// Add a new position offset tag.
@@ -272,6 +295,10 @@ namespace BracketHouse.FontExtension
 					return (strokeAttempt, tagType, tagArgs, tagStringLength);
 				}
 			}
+			if (tagDelegate is StrokeWidthDelegate strokeWidth)
+			{
+				return (strokeWidth.Invoke(gameTime, args), tagType, tagArgs, tagStringLength);
+			}
 			if (tagDelegate is PositionDelegate pos)
 			{
 				return (pos.Invoke(gameTime, args), tagType, tagArgs, tagStringLength);
@@ -347,6 +374,7 @@ namespace BracketHouse.FontExtension
 					TagType.Unknown => (null, TagType.Unknown, null, tagStringLength),
 					TagType.FillColor => (FillTags[tagArgs[0]], tagType, tagArgs, tagStringLength),
 					TagType.StrokeColor => (StrokeTags[tagArgs[0]], tagType, tagArgs, tagStringLength),
+					TagType.StrokeWidth => (StrokeWidthTags[tagArgs[0]], tagType, tagArgs, tagStringLength),
 					TagType.PositionOffset => (PositionTags[tagArgs[0]], tagType, tagArgs, tagStringLength),
 					TagType.LetterPositionOffset => (LetterPositionTags[tagArgs[0]], tagType, tagArgs, tagStringLength),
 					TagType.Scale => (ScaleTags[tagArgs[0]], tagType, tagArgs, tagStringLength),

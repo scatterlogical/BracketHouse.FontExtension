@@ -204,7 +204,7 @@ namespace BracketHouse.FontExtension
 		/// <param name="formatting">Whether to parse and apply formatting tags</param>
 		/// <param name="gameTime"></param>
 		/// <param name="maxChars">Stop after this many characters, not counting formatting tags. Negative numbers indicate no limit.</param>
-		void LayoutText(string text, Vector2 position, float depth, float lineHeight, float scale, Color color, Color strokeColor, bool kerning, bool yIsDown, bool positionByBaseline, float rotation, Vector2 origin, bool formatting, GameTime gameTime, int maxChars)
+		void LayoutText(string text, Vector2 position, float depth, float lineHeight, float scale, Color color, Color strokeColor, float strokeWidth, bool kerning, bool yIsDown, bool positionByBaseline, float rotation, Vector2 origin, bool formatting, GameTime gameTime, int maxChars)
 		{
 			if (string.IsNullOrEmpty(text))
 			{
@@ -221,6 +221,7 @@ namespace BracketHouse.FontExtension
 
 			Color currentFill = color;
 			Color currentStroke = strokeColor;
+			float currentStrokeWidth = strokeWidth;
 			float currentLineHeight = lineHeight;
 			float currentScale = scale;
 			Vector2 currentOffset = Vector2.Zero;
@@ -270,6 +271,9 @@ namespace BracketHouse.FontExtension
 						case Formatting.TagType.StrokeColor:
 							currentStroke = (Color)returnValue;
 							break;
+							case Formatting.TagType.StrokeWidth: 
+							currentStrokeWidth = (float)returnValue;
+							break;
 						case Formatting.TagType.PositionOffset:
 							currentOffset = (Vector2)returnValue;
 							break;
@@ -314,6 +318,10 @@ namespace BracketHouse.FontExtension
 							if (Ends.HasFlag(Formatting.TagType.StrokeColor))
 							{
 								currentStroke = strokeColor;
+							}
+							if (Ends.HasFlag(Formatting.TagType.StrokeWidth))
+							{
+								currentStrokeWidth = strokeWidth;
 							}
 							if (Ends.HasFlag(Formatting.TagType.PositionOffset))
 							{
@@ -379,6 +387,11 @@ namespace BracketHouse.FontExtension
 					LayoutVertices[GlyphsLayouted * 4 + 1].StrokeColor = currentStroke;
 					LayoutVertices[GlyphsLayouted * 4 + 2].StrokeColor = currentStroke;
 					LayoutVertices[GlyphsLayouted * 4 + 3].StrokeColor = currentStroke;
+					
+					LayoutVertices[GlyphsLayouted * 4 + 0].StrokeWidth = currentStrokeWidth;
+					LayoutVertices[GlyphsLayouted * 4 + 1].StrokeWidth = currentStrokeWidth;
+					LayoutVertices[GlyphsLayouted * 4 + 2].StrokeWidth = currentStrokeWidth;
+					LayoutVertices[GlyphsLayouted * 4 + 3].StrokeWidth = currentStrokeWidth;
 
 					GlyphsLayouted++;
 				}
@@ -417,7 +430,7 @@ namespace BracketHouse.FontExtension
 		/// <param name="yIsDown">Override <c>PositiveYIsDown</c> property.</param>
 		/// <param name="positionByBaseline">Override <c>PositionByBaseline</c> property.</param>
 		/// <param name="maxChars">Stop after layouting this many characters.</param>
-		void SimpleLayoutText(string text, Vector2 position, float depth, float lineHeight, float scale, Color color, Color strokeColor, bool kerning, bool yIsDown, bool positionByBaseline, int maxChars)
+		void SimpleLayoutText(string text, Vector2 position, float depth, float lineHeight, float scale, Color color, Color strokeColor, float strokeWidth, bool kerning, bool yIsDown, bool positionByBaseline, int maxChars)
 		{
 			if (string.IsNullOrEmpty(text))
 			{
@@ -489,6 +502,11 @@ namespace BracketHouse.FontExtension
 					LayoutVertices[GlyphsLayouted * 4 + 1].StrokeColor = strokeColor;
 					LayoutVertices[GlyphsLayouted * 4 + 2].StrokeColor = strokeColor;
 					LayoutVertices[GlyphsLayouted * 4 + 3].StrokeColor = strokeColor;
+					
+					LayoutVertices[GlyphsLayouted * 4 + 0].StrokeWidth = strokeWidth;
+					LayoutVertices[GlyphsLayouted * 4 + 1].StrokeWidth = strokeWidth;
+					LayoutVertices[GlyphsLayouted * 4 + 2].StrokeWidth = strokeWidth;
+					LayoutVertices[GlyphsLayouted * 4 + 3].StrokeWidth = strokeWidth;
 
 					GlyphsLayouted++;
 				}
@@ -522,9 +540,9 @@ namespace BracketHouse.FontExtension
 		/// <param name="rotation">Amount of rotation in radians</param>
 		/// <param name="origin">Point to rotate around, relative to position</param>
 		/// <param name="maxChars">Stop after this many characters, not counting formatting tags. Negative numbers indicate no limit.</param>
-		public void LayoutText(GameTime gameTime, string text, Vector2 position, Color color, Color strokeColor, float scale, float rotation, Vector2 origin, int maxChars = -1)
+		public void LayoutText(GameTime gameTime, string text, Vector2 position, Color color, Color strokeColor, float strokeWidth, float scale, float rotation, Vector2 origin, int maxChars = -1)
 		{
-			LayoutText(text, position, 1f, Font.LineHeight, scale, color, strokeColor, EnableKerning, PositiveYIsDown, PositionByBaseline, rotation, origin, true, gameTime, maxChars);
+			LayoutText(text, position, 1f, Font.LineHeight, scale, color, strokeColor, strokeWidth, EnableKerning, PositiveYIsDown, PositionByBaseline, rotation, origin, true, gameTime, maxChars);
 		}
 		/// <summary>
 		/// Perform layouting with rotation, but ignoring formatting tags, for a string so that the text can be rendered.
@@ -537,9 +555,9 @@ namespace BracketHouse.FontExtension
 		/// <param name="rotation">Amount of rotation in radians</param>
 		/// <param name="origin">Point to rotate around, relative to position</param>
 		/// <param name="maxChars">Stop after this many characters. Negative numbers indicate no limit.</param>
-		public void LayoutText(string text, Vector2 position, Color color, Color strokeColor, float scale, float rotation, Vector2 origin, int maxChars = -1)
+		public void LayoutText(string text, Vector2 position, Color color, Color strokeColor, float scale, float strokeWidth, float rotation, Vector2 origin, int maxChars = -1)
 		{
-			LayoutText(text, position, 1f, Font.LineHeight, scale, color, strokeColor, EnableKerning, PositiveYIsDown, PositionByBaseline, rotation, origin, false, null, maxChars);
+			LayoutText(text, position, 1f, Font.LineHeight, scale, color, strokeColor, strokeWidth, EnableKerning, PositiveYIsDown, PositionByBaseline, rotation, origin, false, null, maxChars);
 		}
 		/// <summary>
 		/// Perform layouting for a string, parsing formatting tags, so that the text can be rendered.
@@ -551,9 +569,9 @@ namespace BracketHouse.FontExtension
 		/// <param name="strokeColor">Color to draw text outlines.</param>
 		/// <param name="scale">How large to draw the text.</param>
 		/// <param name="maxChars">Stop after this many characters, not counting formatting tags.</param>
-		public void LayoutText(GameTime gameTime, string text, Vector2 position, Color color, Color strokeColor, float scale = 16, int maxChars = -1)
+		public void LayoutText(GameTime gameTime, string text, Vector2 position, Color color, Color strokeColor, float strokeWidth = 1, float scale = 16, int maxChars = -1)
 		{
-			LayoutText(text, position, 1f, Font.LineHeight, scale, color, strokeColor, EnableKerning, PositiveYIsDown, PositionByBaseline, 0, Vector2.Zero, true, gameTime, maxChars);
+			LayoutText(text, position, 1f, Font.LineHeight, scale, color, strokeColor, strokeWidth, EnableKerning, PositiveYIsDown, PositionByBaseline, 0, Vector2.Zero, true, gameTime, maxChars);
 		}
 		/// <summary>
 		/// Perform layouting for a string so that the text can be rendered.
@@ -564,9 +582,9 @@ namespace BracketHouse.FontExtension
 		/// <param name="strokeColor">Color to draw text outlines.</param>
 		/// <param name="scale">How large to draw the text.</param>
 		/// <param name="maxChars">Stop after this many characters, not counting formatting tags.</param>
-		public void SimpleLayoutText(string text, Vector2 position, Color color, Color strokeColor, float scale = 16, int maxChars = -1)
+		public void SimpleLayoutText(string text, Vector2 position, Color color, Color strokeColor, float strokeWidth = 1, float scale = 16, int maxChars = -1)
 		{
-			SimpleLayoutText(text, position, 1f, Font.LineHeight, scale, color, strokeColor, EnableKerning, PositiveYIsDown, PositionByBaseline, maxChars);
+			SimpleLayoutText(text, position, 1f, Font.LineHeight, scale, color, strokeColor, strokeWidth, EnableKerning, PositiveYIsDown, PositionByBaseline, maxChars);
 		}
 		/// <summary>
 		/// Render text with outline that has been layouted since last use of ResetLayout, overriding settings from TextRenderer.

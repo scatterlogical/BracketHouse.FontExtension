@@ -30,6 +30,7 @@ struct VertexShaderInput
 	float4 Color : COLOR0;
 	float4 StrokeColor : COLOR1;
 	float2 TexCoord : TEXCOORD0;
+	float StrokeWidth : TEXCOORD1;
 };
 
 struct VertexShaderOutput
@@ -38,6 +39,7 @@ struct VertexShaderOutput
 	float4 Color : COLOR0;
 	float4 StrokeColor : COLOR1;
 	float2 TexCoord : TEXCOORD0;
+	float StrokeWidth : TEXCOORD1;
 };
 
 VertexShaderOutput MainVS(in VertexShaderInput input)
@@ -47,6 +49,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 	output.Color = input.Color;
 	output.StrokeColor = input.StrokeColor;
 	output.TexCoord = input.TexCoord;
+	output.StrokeWidth = input.StrokeWidth;
 
 	return output;
 }
@@ -116,8 +119,8 @@ float4 StrokePS(VertexShaderOutput input) : COLOR
 	float2 msdfUnit = PxRange / TextureSize;
 	float3 samp = tex2D(glyphSampler, input.TexCoord).rgb;
 
-	const float strokeThickness = 0.250f * 0.75f;
-	float sigDist = Median(samp.r, samp.g, samp.b) - 0.25f - strokeThickness;
+	const float strokeThickness = 0.250f * 0.75f * input.StrokeWidth / 2;
+	float sigDist = Median(samp.r, samp.g, samp.b) - 0.5f + strokeThickness;
 	sigDist = -(abs(sigDist) - strokeThickness);
 	sigDist = sigDist * dot(msdfUnit, 0.5f / fwidth(input.TexCoord));
 
@@ -139,8 +142,8 @@ float4 SmallStrokePS(VertexShaderOutput input) : COLOR
 	float3 samp = tex2D(glyphSampler, input.TexCoord).rgb;
 
 	// Calculate the signed distance (in texels)
-	const float strokeThickness = 0.250f * 0.75f;
-	float sigDist = Median(samp.r, samp.g, samp.b) - 0.25f - strokeThickness;
+	const float strokeThickness = 0.250f * 0.75f  * input.StrokeWidth / 2;
+	float sigDist = Median(samp.r, samp.g, samp.b) - 0.5f + strokeThickness;
 	sigDist = -(abs(sigDist) - strokeThickness);
 
 	// For proper anti-aliasing we need to calculate the signed distance in pixels.
@@ -171,8 +174,8 @@ float4 StrokedTextPS(VertexShaderOutput input) : COLOR
 
 	float sigDist = Median(samp.r, samp.g, samp.b) - 0.5f;
 	sigDist = sigDist * dot(msdfUnit, 0.5f / fwidth(input.TexCoord));
-	const float strokeThickness = 0.250f * 0.75f;
-	float strokeDist = Median(samp.r, samp.g, samp.b) - 0.25f - strokeThickness;
+	const float strokeThickness = 0.250f * 0.75f * input.StrokeWidth;
+	float strokeDist = Median(samp.r, samp.g, samp.b) - 0.5f;
 	strokeDist = -(abs(strokeDist) - strokeThickness);
 	strokeDist = strokeDist * dot(msdfUnit, 0.5f / fwidth(input.TexCoord));
 
@@ -189,8 +192,8 @@ float4 SmallStrokedTextPS(VertexShaderOutput input) : COLOR
 	float3 samp = tex2D(glyphSampler, input.TexCoord).rgb;
 
 	// Calculate the signed distance (in texels)
-	const float strokeThickness = 0.250f * 0.75f;
-	float StrokeDist = Median(samp.r, samp.g, samp.b) - 0.25f - strokeThickness;
+	const float strokeThickness = 0.250f * 0.75f * input.StrokeWidth;
+	float StrokeDist = Median(samp.r, samp.g, samp.b) - 0.5f;
 	StrokeDist = -(abs(StrokeDist) - strokeThickness);
 	float sigDist = Median(samp.r, samp.g, samp.b) - 0.5f;
 
