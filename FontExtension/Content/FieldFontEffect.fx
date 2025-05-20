@@ -116,6 +116,9 @@ float4 AltPS(VertexShaderOutput input) : COLOR
 
 float4 StrokePS(VertexShaderOutput input) : COLOR
 {
+	if(input.StrokeWidth < 0.001f)
+		return float4(0.0f, 0.0f, 0.0f, 0.0f);
+	
 	float2 msdfUnit = PxRange / TextureSize;
 	float3 samp = tex2D(glyphSampler, input.TexCoord).rgb;
 
@@ -131,6 +134,9 @@ float4 StrokePS(VertexShaderOutput input) : COLOR
 
 float4 SmallStrokePS(VertexShaderOutput input) : COLOR
 {
+	if(input.StrokeWidth < 0.001f)
+		return float4(0.0f, 0.0f, 0.0f, 0.0f);
+	
 	// Convert normalized texture coordinates to absolute texture coordinates
 	float2 uv = input.TexCoord * TextureSize;
 
@@ -175,12 +181,17 @@ float4 StrokedTextPS(VertexShaderOutput input) : COLOR
 	float sigDist = Median(samp.r, samp.g, samp.b) - 0.5f;
 	sigDist = sigDist * dot(msdfUnit, 0.5f / fwidth(input.TexCoord));
 	const float strokeThickness = 0.250f * 0.75f * input.StrokeWidth;
+	
+	float opacity = clamp(sigDist + 0.5f, 0.0f, 1.0f);
+	
+	if(input.StrokeWidth < 0.001f)
+		return input.Color * opacity;
+
 	float strokeDist = Median(samp.r, samp.g, samp.b) - 0.5f;
 	strokeDist = -(abs(strokeDist) - strokeThickness);
 	strokeDist = strokeDist * dot(msdfUnit, 0.5f / fwidth(input.TexCoord));
-
-	float opacity = clamp(sigDist + 0.5f, 0.0f, 1.0f);
 	float strokeOpacity = clamp(strokeDist + 0.5f, 0.0f, 1.0f);
+	
 	return lerp(input.StrokeColor, input.Color, opacity) * max(opacity, strokeOpacity);
 }
 
@@ -192,11 +203,8 @@ float4 SmallStrokedTextPS(VertexShaderOutput input) : COLOR
 	float3 samp = tex2D(glyphSampler, input.TexCoord).rgb;
 
 	// Calculate the signed distance (in texels)
-	const float strokeThickness = 0.250f * 0.75f * input.StrokeWidth;
-	float StrokeDist = Median(samp.r, samp.g, samp.b) - 0.5f;
-	StrokeDist = -(abs(StrokeDist) - strokeThickness);
 	float sigDist = Median(samp.r, samp.g, samp.b) - 0.5f;
-
+	
 	// For proper anti-aliasing we need to calculate the signed distance in pixels.
 	// We do this using the derivatives.
 	float2 gradDist = SafeNormalize(float2(ddx(sigDist), ddy(sigDist)));
@@ -205,6 +213,15 @@ float4 SmallStrokedTextPS(VertexShaderOutput input) : COLOR
 	const float normalization = thickness * 0.5f * sqrt(2.0f);
 	float afWidth = min(normalization * length(grad), 0.5f);
 	float opacity = smoothstep(0.0f - afWidth, 0.0f + afWidth, sigDist);
+
+	if(input.StrokeWidth < 0.001f)
+		return input.Color * opacity;
+
+	const float strokeThickness = 0.250f * 0.75f * input.StrokeWidth;
+	float StrokeDist = Median(samp.r, samp.g, samp.b) - 0.25f - strokeThickness;
+	
+	StrokeDist = -(abs(StrokeDist) - strokeThickness);
+	
 	float strokeOpacity = smoothstep(0.0f - afWidth, 0.0f + afWidth, StrokeDist);
 	
 	return lerp(input.StrokeColor, input.Color, opacity) * max(opacity, strokeOpacity);
